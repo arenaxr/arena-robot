@@ -6,33 +6,53 @@
 import serial
 import io
 import time
-from math import pi
+import math
 import json
 from datetime import date, datetime
 from particleFilter import ParticleFilterLoc
-#from arena import *
+from arena import *
 
 import pyrealsense2.pyrealsense2 as rs
-#from scipy.spatial.transform import Rotation
-
 
 UWB_BIAS = 0.2
 UWB_STD = 0.1
 
 IN_TO_METER = 0.0254
-RAD_TO_DEG = 180 / pi
+RAD_TO_DEG = 180 / math.pi
 
-#scene = Scene(host="arenaxr.org", scene="test0", realm="realm", namespace="astrasse")
+# Code taken from https://automaticaddison.com/how-to-convert-a-quaternion-into-euler-angles-in-python/
+def euler_from_quaternion(x, y, z, w):
+  # Convert a quaternion into euler angles (roll, pitch, yaw)
+  # roll is rotation around x  (counterclockwise)
+  # pitch is rotation around y (counterclockwise)
+  # yaw is rotation around z   (counterclockwise)
+    
+  t0 = +2.0 * (w * x + y * z)
+  t1 = +1.0 - 2.0 * (x * x + y * y)
+  roll_x = math.atan2(t0, t1)*RAD_TO_DEG
 
-#box = Box(object_id="my_box", position=Position(0, 0, 0), scale=Scale(0.3, 1.8, 0.3), color=(255, 0, 0))
-#text = Text(text="User", position=Position(0, 2, 0), scale=Scale(3,3,3), parent=box)
+  t2 = +2.0 * (w * y - z * x)
+  t2 = +1.0 if t2 > +1.0 else t2
+  t2 = -1.0 if t2 < -1.0 else t2
+  pitch_y = math.asin(t2)*RAD_TO_DEG
+
+  t3 = +2.0 * (w * z + x * y)
+  t4 = +1.0 - 2.0 * (y * y + z * z)
+  yaw_z = math.atan2(t3, t4)*RAD_TO_DEG
+
+  return roll_x, pitch_y, yaw_z
+
+scene = Scene(host="arenaxr.org", scene="test0", realm="realm", namespace="astrasse")
+
+box = Icosahedron(object_id="my_box", position=Position(0, 0, 0), scale=Scale(0.5, 0.5, 0.5), color=(255, 255, 0))
+text = Text(text="User", position=Position(0, 2, 0), scale=Scale(3,3,3), parent=box)
 
 pf = ParticleFilterLoc()
-ser = serial.Serial('/dev/serial/by-id/usb-SEGGER_J-Link_000760025484-if00', 115200, timeout=1)
+ser = serial.Serial('/dev/serial/by-id/usb-SEGGER_J-Link_000760047741-if00', 115200, timeout=1)
 
 locations = {
   7: (166.75, 39.5, 270.75),
-  8: (-7.5, 91.25, 104.5),
+  8: (0, 65, 34),
   9: (132.25, 57.675, 135.75),
   11: (41.25, 27.375, 0)
 }
@@ -43,10 +63,10 @@ for k in locations:
 
 print(locations)
 
-#@scene.run_once
-#def init():
-#  scene.add_object(box)
-#  scene.add_object(text)
+@scene.run_once
+def init():
+  scene.add_object(box)
+  scene.add_object(text)
 
 # Declare RealSense pipeline, encapsulating the actual device and sensors
 pipe = rs.pipeline()
@@ -63,15 +83,16 @@ try:
   data = None
   while True:
     line = ser.readline()
-    if (line[0] != ord('#')):
+    if (len(line) > 0 and line[0] != ord('#')):
       line = line[0:-2].replace(b' ', b'').decode('utf-8')
       #ID, RANGE, RSSI, TIMESTAMP
       curData = line.split(',')
       if (len(curData) < 4):
          print(curData)
          continue
-      x, y, z = locations[int(curData[0])]
-      pf.depositRange(x, y, z, float(curData[1]), UWB_STD)
+      if (int(curData[0]) in locations.keys()):
+        x, y, z = locations[int(curData[0])]
+        pf.depositRange(x, y, z, float(curData[1]), UWB_STD)
 
 #      box.update_attributes(position=Position(x.value, y.value, z.value), rotation=Rotation(0, theta.value*RAD_TO_DEG, 0))
 #      scene.update_object(box)
@@ -87,9 +108,14 @@ try:
 
     if data is not None:
       pf.depositVio(float(pose.frame_number), data.translation.x, data.translation.z * (-1), data.translation.y, 0.0)
-      print("625_X:{: 3f} 625_Y:{: 3f} 625_Z:{: 3f}".format(data.translation.x,data.translation.y,data.translation.z))
+      # print("625_X:{: 3f} 625_Y:{: 3f} 625_Z:{: 3f}".format(data.translation.x,data.translation.y,data.translation.z))
     pf_data = pf.getTagLoc()
+
+    rotation = euler_from_quaternion(data.rotation.w, data.rotation.x, data.rotation.y, data.rotation.z)
+
+    box.update_attributes(position=Position(pf_data[1], pf_data[2], pf_data[3]), rotation=Rotation(-rotation[2], -rotation[1], -rotation[0]))
+    scene.update_object(box)
+
     print('PAR_X:{: 3f}'.format(pf_data[1]), 'PAR_Y:{: 3f}'.format(pf_data[2]), 'PAR_Z:{: 3f}'.format(pf_data[3]), 'PAR_T:{: 3f}'.format(pf_data[4]))
-#    print(data)
 finally:
   pipe.stop()
