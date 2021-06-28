@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-setup.py
+setup.py: Package setup file.
+
 Created by Perry Naseck on 6/28/21.
 
 Copyright (c) 2021, The CONIX Research Center
@@ -52,5 +53,13 @@ setup(
         'arena-py>=0,<1',
         'numpy>=1,<2',
         'setuptools_scm>=6.0'
-    ]
+    ],
+    extras_require={
+        'dev': [
+            'flake8>=3,<4',
+            'isort>=5,<6',
+            'pydocstyle>=6,<7',
+            'pylint>=2,<3'
+        ]
+    }
 )
