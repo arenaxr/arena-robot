@@ -1,7 +1,15 @@
 #!/usr/bin/env python
-# Alex Strasser Cylab 6/3/2021
-# Modified Perry Naseck Cylab 2021
-
+#
+# uwb-vfio-demo2.py
+# Created by Alex Strasser on 6/3/21.
+# Modified by Perry Naseck on 6/28/21.
+#
+# Copyright (c) 2021, The CONIX Research Center
+# All rights reserved.
+#
+# This source code is licensed under the BSD-3-Clause license found in the
+# LICENSE file in the root directory of this source tree.
+#
 
 import serial
 import io
@@ -9,7 +17,7 @@ import time
 import math
 import json
 from datetime import date, datetime
-from particleFilter import ParticleFilterLoc
+from particlefilter import ParticleFilterLoc
 from arena import *
 
 import pyrealsense2.pyrealsense2 as rs
@@ -107,15 +115,16 @@ try:
 #      print("Acceleration: {}\n".format(data.acceleration))
 
     if data is not None:
-      pf.depositVio(float(pose.frame_number), data.translation.x, data.translation.z * (-1), data.translation.y, 0.0)
+      pf.depositVio(time.time(), data.translation.x, data.translation.z * (-1), data.translation.y, 0.0)
       # print("625_X:{: 3f} 625_Y:{: 3f} 625_Z:{: 3f}".format(data.translation.x,data.translation.y,data.translation.z))
-    pf_data = pf.getTagLoc()
+    pfStatus, pfT, pfX, pfY, pfZ, pfTheta = pf.getTagLoc()
 
     rotation = euler_from_quaternion(data.rotation.w, data.rotation.x, data.rotation.y, data.rotation.z)
 
-    box.update_attributes(position=Position(pf_data[1], pf_data[2], pf_data[3]), rotation=Rotation(-rotation[2], -rotation[1], -rotation[0]))
-    scene.update_object(box)
+    if pfStatus:
+      box.update_attributes(position=Position(pfX, pfY, pfZ), rotation=Rotation(-rotation[2], -rotation[1], -rotation[0]))
+      scene.update_object(box)
 
-    print('PAR_X:{: 3f}'.format(pf_data[1]), 'PAR_Y:{: 3f}'.format(pf_data[2]), 'PAR_Z:{: 3f}'.format(pf_data[3]), 'PAR_T:{: 3f}'.format(pf_data[4]))
+      print('PAR_X:{: 3f}'.format(pfX), 'PAR_Y:{: 3f}'.format(pfY), 'PAR_Z:{: 3f}'.format(pfZ), 'PAR_T:{: 3f}'.format(pfTheta))
 finally:
   pipe.stop()
