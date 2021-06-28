@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-#
-# uwb-vfio-demo2.py
-# Created by Alex Strasser on 6/3/21.
-# Modified by Perry Naseck on 6/28/21.
-#
-# Copyright (c) 2021, The CONIX Research Center
-# All rights reserved.
-#
-# This source code is licensed under the BSD-3-Clause license found in the
-# LICENSE file in the root directory of this source tree.
-#
+"""
+uwb-vfio-demo2.py
+Created by Alex Strasser on 6/3/21.
+Modified by Perry Naseck on 6/28/21.
+
+Copyright (c) 2021, The CONIX Research Center
+All rights reserved.
+
+This source code is licensed under the BSD-3-Clause license found in the
+LICENSE file in the root directory of this source tree.
+"""
 
 import serial
 import io
