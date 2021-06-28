@@ -1,0 +1,27 @@
+#
+# MANIFEST.in
+# Created by Perry Naseck on 6/28/21.
+#
+# Copyright (c) 2021, The CONIX Research Center
+# All rights reserved.
+#
+# This source code is licensed under the BSD-3-Clause license found in the
+# LICENSE file in the root directory of this source tree.
+#
+
+# Files to include in Python library
+
+include pyproject.toml
+
+# Include the README
+include *.md
+
+# Include the LICENSE
+include LICENSE
+
+# Include setup.py
+include setup.py
+
+graft arenarobot
+graft misc-demo
+prune .github
