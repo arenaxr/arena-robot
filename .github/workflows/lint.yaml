@@ -30,18 +30,13 @@ jobs:
           - { python-version: 3.7, name: flake8,     cmd: flake8,                                  }
           - { python-version: 3.8, name: flake8,     cmd: flake8,                                  }
           - { python-version: 3.9, name: flake8,     cmd: flake8,                                  }
-          - { python-version: 3.6, name: pydocstyle, cmd: pydocstyle,                              }
-          - { python-version: 3.7, name: pydocstyle, cmd: pydocstyle,                              }
-          - { python-version: 3.8, name: pydocstyle, cmd: pydocstyle,                              }
           - { python-version: 3.9, name: pydocstyle, cmd: pydocstyle,                              }
           - { python-version: 3.6, name: pylint,     cmd: pylint --extension-pkg-allow-list=orjson }
           - { python-version: 3.7, name: pylint,     cmd: pylint --extension-pkg-allow-list=orjson }
           - { python-version: 3.8, name: pylint,     cmd: pylint --extension-pkg-allow-list=orjson }
           - { python-version: 3.9, name: pylint,     cmd: pylint --extension-pkg-allow-list=orjson }
-          - { python-version: 3.6, name: isort,      cmd: isort --check-only                       }
-          - { python-version: 3.7, name: isort,      cmd: isort --check-only                       }
-          - { python-version: 3.8, name: isort,      cmd: isort --check-only                       }
           - { python-version: 3.9, name: isort,      cmd: isort --check-only                       }
+          - { python-version: 3.9, name: bandit,     cmd: bandit                                   }
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
