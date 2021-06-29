@@ -23,5 +23,5 @@ include LICENSE
 include setup.py
 
 graft arenarobot
-graft misc-demo
+prune misc-demo
 prune .github
