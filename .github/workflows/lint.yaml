@@ -20,16 +20,17 @@ jobs:
     - uses: actions/checkout@master
     - uses: gaurav-nelson/github-action-markdown-link-check@v1
   python-lint:
-    name: Python lint ${{ matrix.name }}
+    name: Python lint ${{ matrix.name }} ${{ matrix.python-version }}
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
         include:
-          - { name: flake8,     cmd: flake8,             python-version: 3.9 }
-          - { name: pydocstyle, cmd: pydocstyle,         python-version: 3.9 }
-          - { name: pylint,     cmd: pylint,             python-version: 3.9 }
-          - { name: isort,      cmd: isort --check-only, python-version: 3.9 }
+          - { name: flake8,     cmd: flake8,                                  }
+          - { name: pydocstyle, cmd: pydocstyle,                              }
+          - { name: pylint,     cmd: pylint --extension-pkg-allow-list=orjson }
+          - { name: isort,      cmd: isort --check-only                       }
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
