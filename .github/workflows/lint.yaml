@@ -36,7 +36,7 @@ jobs:
           - { python-version: 3.8, name: pylint,     cmd: pylint --extension-pkg-allow-list=orjson }
           - { python-version: 3.9, name: pylint,     cmd: pylint --extension-pkg-allow-list=orjson }
           - { python-version: 3.9, name: isort,      cmd: isort --check-only                       }
-          - { python-version: 3.9, name: bandit,     cmd: bandit                                   }
+          - { python-version: 3.9, name: bandit,     cmd: bandit -r                                }
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
