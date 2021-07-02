@@ -49,6 +49,7 @@ setup(
         'arena-py>=0,<1',
         'numpy>=1,<2',
         'orjson>=3,<4',
+        'selenium>=3,<4',
         'setuptools_scm>=6.0',
         'slam3d>=0,<1'
     ],
