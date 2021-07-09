@@ -46,7 +46,7 @@ setup(
     ],
     keywords='arena robot ar vr robotics',
     install_requires=[
-        'arena-py>=0,<1',
+        'arena-py>=0.1.38,<1',
         'numpy>=1,<2',
         'orjson>=3,<4',
         'selenium>=3,<4',
