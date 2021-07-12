@@ -17,7 +17,7 @@ import subprocess  # nosec B404
 from functools import partial
 from os import setpgrp
 
-from arena import Scene
+from arena import Material, Scene
 from selenium.webdriver import common
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -173,6 +173,12 @@ class VideoCall():
         """Set the Jitsi video mute state."""
         script = f"APP.conference.muteVideo({str(mute).lower()});"
         self.instance.execute_script(script)
+
+    def update_object_material_src(self, obj) -> None:
+        """Update object matieral source to use video."""
+        material_src = f'#video{self.get_user_id()}'
+        obj.update_attributes(material=Material(src=material_src))
+        self.scene.update_object(obj)
 
     def close(self) -> None:
         """Close and quit the browser."""

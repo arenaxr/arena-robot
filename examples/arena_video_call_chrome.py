@@ -19,7 +19,7 @@ LICENSE file in the root directory of this source tree.
 import sys
 from platform import node
 
-from arena import Material, Scene
+from arena import Scene
 from selenium.webdriver import Chrome, ChromeOptions
 
 from arenarobot.video_call import VideoCall
@@ -74,9 +74,7 @@ def main() -> int:
         if args['object_id'] is not None:
             print(f"Updating object '{args['object_id']}' to use new video")
             obj = scene.get_persisted_obj(args['object_id'])
-            material_src = f'#video{call.get_user_id()}'
-            obj.update_attributes(material=Material(src=material_src))
-            scene.update_object(obj)
+            call.update_object_material_src(obj)
 
     scene.run_tasks()
 
