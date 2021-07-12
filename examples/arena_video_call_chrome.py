@@ -17,8 +17,9 @@ LICENSE file in the root directory of this source tree.
 #       Works well on Rapsbian Lite.
 
 import sys
+from platform import node
 
-from arena import Scene
+from arena import Material, Scene
 from selenium.webdriver import Chrome, ChromeOptions
 
 from arenarobot.video_call import VideoCall
@@ -28,15 +29,18 @@ def main() -> int:
     """Start a video call example."""
     if len(sys.argv) < 5:
         print('Not enough arguments')
-        print(f'{__file__} <host> <realm> <namespace> <scene>')
+        print(f'{__file__} <host> <realm> <namespace> <scene> [object_id]')
         return 1
 
     args = {
         'host': sys.argv[1],
         'realm': sys.argv[2],
         'namespace': sys.argv[3],
-        'scene': sys.argv[4]
+        'scene': sys.argv[4],
+        'object_id': None
     }
+    if len(sys.argv) > 5:
+        args['object_id'] = sys.argv[5]
 
     options = ChromeOptions()
     options.headless = True
@@ -51,8 +55,28 @@ def main() -> int:
     call = VideoCall(scene, Chrome, options)
 
     call.open()
-    call.video_mute(False)
-    call.set_name("RVR")
+    call.change_display_name(node())  # Hostname
+    call.set_audio_mute(True)
+    call.set_video_mute(False)
+
+    call.wait_for_join()  # Wait for call to finish joining
+
+    print('Jitsi User ID:', call.get_user_id())
+    print('Jitsi Display Name:', call.get_display_name())
+    print('Jitsi Room Name:', call.get_room_name())
+    print('Jitsi Audio Muted:', call.get_audio_mute())
+    print('Jitsi Video Muted:', call.get_video_mute())
+    print('Jitsi Video Track Label:', call.get_video_track_label())
+    print('Jitsi Video Resolution:', call.get_video_resolution())
+
+    @scene.run_once
+    def update_video_object():
+        if args['object_id'] is not None:
+            print(f"Updating object '{args['object_id']}' to use new video")
+            obj = scene.get_persisted_obj(args['object_id'])
+            material_src = f'#video{call.get_user_id()}'
+            obj.update_attributes(material=Material(src=material_src))
+            scene.update_object(obj)
 
     scene.run_tasks()
 

@@ -30,18 +30,19 @@ class VideoCall():
     _selenium_start_orig = staticmethod(common.service.Service.start)
     _subprocess_popen_orig = staticmethod(subprocess.Popen)
 
-    def __init__(self, scene: Scene, browser: WebDriver, options=None):
+    def __init__(self, scene: Scene, browser: WebDriver, options=None) -> None:
         """Initialize the video call class."""
         self.scene = scene
         self.browser = browser
         self.options = options
         self.instance = None
+        self.joined = False
 
-    def __exit__(self, exception_type, exception_value, traceback):
+    def __exit__(self, exception_type, exception_value, traceback) -> None:
         """Safely exit 'with' statements."""
         self.close()
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Safely exit if class deleted."""
         self.close()
 
@@ -50,7 +51,7 @@ class VideoCall():
         return self.instance is not None
 
     @staticmethod
-    def _selenium_start(*args, **kwargs):
+    def _selenium_start(*args, **kwargs) -> None:
         """
         Start Selenium but ignore handlers like SIGINT.
 
@@ -65,14 +66,14 @@ class VideoCall():
         finally:
             subprocess.Popen = VideoCall._subprocess_popen_orig
 
-    def open(self):
+    def open(self) -> None:
         """Start the browser."""
         token = self.scene.remote_auth_token['token']
         url = 'https://jitsi0.andrew.cmu.edu:8443/'
         url += f'{self.scene.namespace}_{self.scene.scene}'
         print(f"arena-robot VideoCall: opening {url}")
         url += f'?jwt={token}'
-        url += '#config.channelLastN=0&config.resolution=1080'
+        url += '#config.channelLastN=0'
 
         # Temporarily override the start function to not pass SIGINT
         try:
@@ -83,22 +84,97 @@ class VideoCall():
 
         self.instance.get(url)
 
-    def set_name(self, name: str):
+    def wait_for_join(self) -> None:
+        """Wait for the call to be joined."""
+        if not self.joined:
+            script = "return APP.conference.isJoined();"
+            while not self.instance.execute_script(script):
+                pass
+            self.joined = True
+
+    def change_avatar_url(self, url: str) -> None:
+        """Set the Jitsi avatar url."""
+        script = f"APP.conference.changeLocalAvatarUrl('{url}');"
+        self.instance.execute_script(script)
+
+    def change_display_name(self, name: str) -> None:
         """Set the Jitsi display name."""
         script = f"APP.conference.changeLocalDisplayName('{name}');"
         self.instance.execute_script(script)
 
-    def video_mute(self, mute: bool = True):
-        """Set the Jitsi video mute state."""
-        script = f"APP.conference.muteVideo({str(mute).lower()});"
+    def change_email(self, email: str) -> None:
+        """Set the Jitsi email."""
+        script = f"APP.conference.changeLocalEmail('{email}');"
         self.instance.execute_script(script)
 
-    def audio_mute(self, mute: bool = True):
+    def get_display_name(self) -> str:
+        """Get the Jitsi display name."""
+        self.wait_for_join()
+        script = "return APP.conference.getLocalDisplayName();"
+        return self.instance.execute_script(script)
+
+    def get_room_name(self) -> str:
+        """Get the Jitsi room name."""
+        script = "return APP.conference.roomName;"
+        return self.instance.execute_script(script)
+
+    def get_stats(self) -> dict:
+        """Get the Jitsi stats."""
+        self.wait_for_join()
+        script = "return APP.conference.getStats();"
+        return self.instance.execute_script(script)
+
+    def get_user_id(self) -> str:
+        """Get the Jitsi user ID."""
+        self.wait_for_join()
+        script = "return APP.conference.getMyUserId();"
+        return self.instance.execute_script(script)
+
+    def get_audio_level(self) -> float:
+        """Get the Jitsi audio level."""
+        self.wait_for_join()
+        script = "return APP.conference.localAudio.audioLevel;"
+        return self.instance.execute_script(script)
+
+    def get_audio_track_label(self) -> str:
+        """Get the Jitsi audio level."""
+        self.wait_for_join()
+        script = "return APP.conference.localAudio.track.label;"
+        return self.instance.execute_script(script)
+
+    def get_video_resolution(self) -> int:
+        """Get the Jitsi video resolution."""
+        self.wait_for_join()
+        script = "return APP.conference.localVideo.resolution;"
+        return self.instance.execute_script(script)
+
+    def get_video_track_label(self) -> str:
+        """Get the Jitsi video track."""
+        self.wait_for_join()
+        script = "return APP.conference.localVideo.track.label;"
+        return self.instance.execute_script(script)
+
+    def get_audio_mute(self) -> bool:
+        """Get the Jitsi audio mute state."""
+        script = "return APP.conference.isLocalAudioMuted();"
+        return self.instance.execute_script(script)
+
+    def get_video_mute(self) -> bool:
+        """Get the Jitsi video mute state."""
+        script = "return APP.conference.isLocalVideoMuted();"
+        return self.instance.execute_script(script)
+
+    def set_audio_mute(self, mute: bool = True) -> None:
         """Set the Jitsi audio mute state."""
         script = f"APP.conference.muteAudio({str(mute).lower()});"
         self.instance.execute_script(script)
 
-    def close(self):
+    def set_video_mute(self, mute: bool = True) -> None:
+        """Set the Jitsi video mute state."""
+        script = f"APP.conference.muteVideo({str(mute).lower()});"
+        self.instance.execute_script(script)
+
+    def close(self) -> None:
         """Close and quit the browser."""
         print("arena-robot VideoCall: closing")
         if self.instance is not None:
