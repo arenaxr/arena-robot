@@ -16,7 +16,6 @@ LICENSE file in the root directory of this source tree.
 #         sudo apt-get install chromium-chromedriver
 #       Works well on Rapsbian Lite.
 
-import atexit
 import sys
 
 from arena import Scene
@@ -50,7 +49,6 @@ def main() -> int:
                   namespace=args['namespace'], video=True)
 
     call = VideoCall(scene, Chrome, options)
-    atexit.register(call.close)
 
     call.open()
     call.video_mute(False)
