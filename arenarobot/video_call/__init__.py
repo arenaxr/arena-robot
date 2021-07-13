@@ -175,7 +175,7 @@ class VideoCall():
         self.instance.execute_script(script)
 
     def update_object_material_src(self, obj) -> None:
-        """Update object matieral source to use video."""
+        """Update object material source to use video."""
         material_src = f'#video{self.get_user_id()}'
         obj.update_attributes(material=Material(src=material_src))
         self.scene.update_object(obj)
