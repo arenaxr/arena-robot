@@ -14,7 +14,7 @@ from enum import Enum
 from typing import NamedTuple
 
 import numpy as np
-from orjson import dumps, loads
+from json import dumps, loads
 
 from .const import (UPDATE_ACTION, UPDATE_ACTION_LEAVE, UPDATE_ACTION_OCCUPY,
                     UPDATE_LOC, UPDATE_OCCUPANT)
