@@ -30,7 +30,7 @@ def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == '--help':
         print(f'Usage: {__file__} [object_id]\n'
               'Specifcy arena-py environment vairables to select the scene\n'
-              'See https://arena.conix.io/content/python/#running-from-the-command-line')
+              'See https://arena.conix.io/content/python/#running-from-the-command-line')  # noqa: E501
         return 0
 
     object_id = None
