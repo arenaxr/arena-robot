@@ -45,6 +45,9 @@ setup(
         'Framework :: Robot Framework'
     ],
     keywords='arena robot ar vr robotics',
+    entry_points = {
+        'console_scripts': ['arena_video_call_chrome=arenarobot.scripts.arena_video_call_chrome:main'],
+    },
     install_requires=[
         # 'arena-py>=0.1.42,<1',
         'arena-py @ git+https://git@github.com/conix-center/arena-py@5baf5f5bc3a6d332192afc515488a9a96e6b761c#egg=arena-py',  # for jitsi host, until next release
