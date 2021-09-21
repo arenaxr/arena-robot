@@ -27,20 +27,15 @@ from arenarobot.video_call import VideoCall
 
 def main() -> int:
     """Start a video call example."""
-    if len(sys.argv) < 5:
-        print('Not enough arguments')
-        print(f'{__file__} <host> <realm> <namespace> <scene> [object_id]')
-        return 1
+    if len(sys.argv) > 1 and sys.argv[1] == '--help':
+        print(f'Usage: {__file__} [object_id]\n'
+              'Specifcy arena-py environment vairables to select the scene\n'
+              'See https://arena.conix.io/content/python/#running-from-the-command-line')
+        return 0
 
-    args = {
-        'host': sys.argv[1],
-        'realm': sys.argv[2],
-        'namespace': sys.argv[3],
-        'scene': sys.argv[4],
-        'object_id': None
-    }
-    if len(sys.argv) > 5:
-        args['object_id'] = sys.argv[5]
+    object_id = None
+    if len(sys.argv) > 1:
+        object_id = sys.argv[1]
 
     options = ChromeOptions()
     options.headless = True
@@ -49,8 +44,7 @@ def main() -> int:
     options.add_argument("--enable-gpu-rasterization")
     options.add_argument("--ignore-gpu-blocklist")
 
-    scene = Scene(host=args['host'], scene=args['scene'], realm=args['realm'],
-                  namespace=args['namespace'], video=True)
+    scene = Scene(video=True)
 
     call = VideoCall(scene, Chrome, options)
 
@@ -71,10 +65,10 @@ def main() -> int:
 
     @scene.run_once
     def update_video_object():
-        if args['object_id'] is not None:
-            print(f"Updating object '{args['object_id']}' to use new video")
-            obj = scene.get_persisted_obj(args['object_id'])
-            call.update_object_material_src(obj)
+        if object_id is not None:
+            print(f"Updating object '{object_id}' to use new video")
+            obj = scene.get_persisted_obj(object_id)
+            call.update_object_video(obj)
 
     scene.run_tasks()
 

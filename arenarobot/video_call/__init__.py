@@ -17,7 +17,7 @@ import subprocess  # nosec B404
 from functools import partial
 from os import setpgrp
 
-from arena import Material, Scene
+from arena import JitsiVideo, Scene
 from selenium.webdriver import common
 from selenium.webdriver.remote.webdriver import WebDriver
 
@@ -69,11 +69,11 @@ class VideoCall():
     def open(self) -> None:
         """Start the browser."""
         token = self.scene.remote_auth_token['token']
-        url = 'https://jitsi0.andrew.cmu.edu:8443/'
+        url = f'https://{self.scene.jitsi_host}/'
         url += f'{self.scene.namespace}_{self.scene.scene}'
         print(f"arena-robot VideoCall: opening {url}")
         url += f'?jwt={token}'
-        url += '#config.channelLastN=0'
+        url += '#config.channelLastN=0' # Do not stream incoming video
 
         # Temporarily override the start function to not pass SIGINT
         try:
@@ -84,13 +84,17 @@ class VideoCall():
 
         self.instance.get(url)
 
-    def wait_for_join(self) -> None:
+    def wait_for_join(self, wait_for_ready=True) -> None:
         """Wait for the call to be joined."""
         if not self.joined:
+            if not wait_for_ready:
+                return False
             script = "return APP.conference.isJoined();"
             while not self.instance.execute_script(script):
                 pass
             self.joined = True
+            return True
+        return True
 
     def change_avatar_url(self, url: str) -> None:
         """Set the Jitsi avatar url."""
@@ -107,9 +111,10 @@ class VideoCall():
         script = f"APP.conference.changeLocalEmail('{email}');"
         self.instance.execute_script(script)
 
-    def get_display_name(self) -> str:
+    def get_display_name(self, wait_for_ready=True) -> str:
         """Get the Jitsi display name."""
-        self.wait_for_join()
+        if not self.wait_for_join(wait_for_ready):
+            return None
         script = "return APP.conference.getLocalDisplayName();"
         return self.instance.execute_script(script)
 
@@ -118,39 +123,45 @@ class VideoCall():
         script = "return APP.conference.roomName;"
         return self.instance.execute_script(script)
 
-    def get_stats(self) -> dict:
+    def get_stats(self, wait_for_ready=True) -> dict:
         """Get the Jitsi stats."""
-        self.wait_for_join()
+        if not self.wait_for_join(wait_for_ready):
+            return None
         script = "return APP.conference.getStats();"
         return self.instance.execute_script(script)
 
-    def get_user_id(self) -> str:
+    def get_user_id(self, wait_for_ready=True) -> str:
         """Get the Jitsi user ID."""
-        self.wait_for_join()
+        if not self.wait_for_join(wait_for_ready):
+            return None
         script = "return APP.conference.getMyUserId();"
         return self.instance.execute_script(script)
 
-    def get_audio_level(self) -> float:
+    def get_audio_level(self, wait_for_ready=True) -> float:
         """Get the Jitsi audio level."""
-        self.wait_for_join()
+        if not self.wait_for_join(wait_for_ready):
+            return None
         script = "return APP.conference.localAudio.audioLevel;"
         return self.instance.execute_script(script)
 
-    def get_audio_track_label(self) -> str:
+    def get_audio_track_label(self, wait_for_ready=True) -> str:
         """Get the Jitsi audio level."""
-        self.wait_for_join()
+        if not self.wait_for_join(wait_for_ready):
+            return None
         script = "return APP.conference.localAudio.track.label;"
         return self.instance.execute_script(script)
 
-    def get_video_resolution(self) -> int:
+    def get_video_resolution(self, wait_for_ready=True) -> int:
         """Get the Jitsi video resolution."""
-        self.wait_for_join()
+        if not self.wait_for_join(wait_for_ready):
+            return None
         script = "return APP.conference.localVideo.resolution;"
         return self.instance.execute_script(script)
 
-    def get_video_track_label(self) -> str:
+    def get_video_track_label(self, wait_for_ready=True) -> str:
         """Get the Jitsi video track."""
-        self.wait_for_join()
+        if not self.wait_for_join(wait_for_ready):
+            return None
         script = "return APP.conference.localVideo.track.label;"
         return self.instance.execute_script(script)
 
@@ -174,10 +185,12 @@ class VideoCall():
         script = f"APP.conference.muteVideo({str(mute).lower()});"
         self.instance.execute_script(script)
 
-    def update_object_material_src(self, obj) -> None:
-        """Update object material source to use video."""
-        material_src = f'#video{self.get_user_id()}'
-        obj.update_attributes(material=Material(src=material_src))
+    def update_object_video(self, obj, wait_for_ready=True) -> None:
+        """Update object jitsi video source to use video."""
+        src = self.get_user_id(wait_for_ready)
+        if src is None:
+            raise RuntimeError('Could not get Jitsi user ID!')
+        obj.update_attributes(jitsi_video=JitsiVideo(jitsiId=src))
         self.scene.update_object(obj)
 
     def close(self) -> None:
