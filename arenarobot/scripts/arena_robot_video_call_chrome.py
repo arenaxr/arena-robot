@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 arena_video_call_chrome.py: Connect to an ARENA video call in Chrome.
 

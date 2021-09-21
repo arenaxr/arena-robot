@@ -17,11 +17,11 @@ pip install -e .
 
 ### Video Call
 
-After installing the repo, you should now have the `arena_video_call_chrome` command. You can also run it with `python3 -m arena_video_call_chrome`. It uses the [standard arena-py scene environment variables](https://arena.conix.io/content/python/#running-from-the-command-line).
+After installing the repo, you should now have the `arena-robot-video-call-chrome` command. You can also run it with `python3 -m arena-robot-video-call-chrome`. It uses the [standard arena-py scene environment variables](https://arena.conix.io/content/python/#running-from-the-command-line).
 
 The first argument sets the surface that the video should be mapped to. For example, to map to an object called `avideobox`:
 ```bash
-MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena_video_call_chrome avideobox
+MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-robot-video-call-chrome avideobox
 ```
 
 ## License
