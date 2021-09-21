@@ -73,7 +73,7 @@ class VideoCall():
         url += f'{self.scene.namespace}_{self.scene.scene}'
         print(f"arena-robot VideoCall: opening {url}")
         url += f'?jwt={token}'
-        url += '#config.channelLastN=0' # Do not stream incoming video
+        url += '#config.channelLastN=0'  # Do not stream incoming video
 
         # Temporarily override the start function to not pass SIGINT
         try:
