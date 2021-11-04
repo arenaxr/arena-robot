@@ -31,7 +31,8 @@ def main() -> int:
         print(f'Usage: {__file__} [object_id]\n'
               'Specifcy arena-py environment vairables to select the '
               'scene\n'
-              'See https://arena.conix.io/content/python/#running-from-the-command-line')  # noqa: E501
+              'See https://arena.conix.io'
+              '/content/python/#running-from-the-command-line')
         return 0
 
     object_id = None
