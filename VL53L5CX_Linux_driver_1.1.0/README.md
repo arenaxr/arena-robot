@@ -1,3 +1,13 @@
+# ARENA-BOT Code 
+In user/script folder, continous_range.c holds the functions necessary for ranging:
+
+    initialize_sensors, get_range, stop_ranging, as well as some local helper variables/functions to calculate x,y,z  
+
+
+
+
+
+# Below is ST Documentation 
 # STMICROELECTRONICS - VL53L5CX Linux driver
 Official VL53L5CX Linux driver and test applications for linux and android platforms
 
