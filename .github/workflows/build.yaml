@@ -74,13 +74,13 @@ jobs:
           - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp37 }
           - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp38 }
           - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp39 }
-          - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp39 }
+          # - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp39 } # no numpy wheel
           - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp37 }
           - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp36 }
           - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp37 }
           - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38 }
           - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39 }
-          - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp39 }
+          # - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp39 } # no numpy wheel
           - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp37 }
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp36 }
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp37 }
