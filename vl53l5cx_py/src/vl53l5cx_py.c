@@ -1,19 +1,18 @@
-
-"""
-vl53l5cx_py.c
-Created by Perry Naseck and Vikram Bhat on 11/4/21.
-
-Copyright (c) 2021, The CONIX Research Center
-All rights reserved.
-
-This file also contains source code originating from the VL53L5CX Ultra
-Lite Driver licensed under the BSD 3-clause 'New' or 'Revised' License.
-Copyright (c) 2020, STMicroelectronics
-All rights reserved.
-
-This source code is licensed under the BSD-3-Clause license found in the
-LICENSE file in the root directory of this source tree.
-"""
+/*
+ * vl53l5cx_py.c
+ * Created by Perry Naseck and Vikram Bhat on 11/4/21.
+ * 
+ * Copyright (c) 2021, The CONIX Research Center
+ * All rights reserved.
+ * 
+ * This file also contains source code originating from the VL53L5CX Ultra
+ * Lite Driver licensed under the BSD 3-clause 'New' or 'Revised' License.
+ * Copyright (c) 2020, STMicroelectronics
+ * All rights reserved.
+ * 
+ * This source code is licensed under the BSD-3-Clause license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 #include <stdlib.h>
 #include <string.h>

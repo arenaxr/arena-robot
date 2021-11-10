@@ -1,13 +1,13 @@
-"""
-vl53l5cx_py.h
-Created by Perry Naseck and Vikram Bhat on 11/4/21.
-
-Copyright (c) 2021, The CONIX Research Center
-All rights reserved.
-
-This source code is licensed under the BSD-3-Clause license found in the
-LICENSE file in the root directory of this source tree.
-"""
+/*
+ * vl53l5cx_py.h
+ * Created by Perry Naseck and Vikram Bhat on 11/4/21.
+ * 
+ * Copyright (c) 2021, The CONIX Research Center
+ * All rights reserved.
+ * 
+ * This source code is licensed under the BSD-3-Clause license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 #ifndef _VL53L5CX_PY_H
 #define _VL53L5CX_PY_H
