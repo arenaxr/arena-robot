@@ -1,5 +1,5 @@
 """
-__init__.py: arenarobot scripts module root.
+__init__.py: arenavideocall scripts module root.
 
 Created by Perry Naseck on 11/3/21.
 

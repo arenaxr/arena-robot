@@ -1,5 +1,5 @@
 """
-__init__.py: Definitions for the video call client.
+__init__.py: Definitions for the ARENA video call client.
 
 Created by Perry Naseck on 7/1/21.
 
@@ -15,7 +15,7 @@ LICENSE file in the root directory of this source tree.
 
 import subprocess  # nosec B404
 from functools import partial
-from os import setpgrp
+from os import environ, setpgrp
 
 from arena import JitsiVideo, Scene
 from selenium.webdriver import common
@@ -60,8 +60,10 @@ class VideoCall():
         call can be properly hung up.
         """
         try:
+            new_env = environ.copy()
+            new_env['DBUS_SESSION_BUS_ADDRESS'] = '/dev/null'
             subprocess.Popen = partial(subprocess.Popen,
-                                       preexec_fn=setpgrp)
+                                       preexec_fn=setpgrp, env=new_env)
             VideoCall._selenium_start_orig(*args, **kwargs)
         finally:
             subprocess.Popen = VideoCall._subprocess_popen_orig
@@ -78,6 +80,7 @@ class VideoCall():
         # Temporarily override the start function to not pass SIGINT
         try:
             common.service.Service.start = self._selenium_start
+            # self.options.add_argument("--no-sandbox")
             self.instance = self.browser(options=self.options)
         finally:
             common.service.Service.start = self._selenium_start_orig

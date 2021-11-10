@@ -64,7 +64,7 @@ setup(
     ],
     keywords='arena robot ar vr robotics',
     entry_points = {
-        'console_scripts': ['arena-robot-video-call-chrome=arenarobot.scripts.arena_robot_video_call_chrome:main'],
+        'console_scripts': ['arena-video-call-chrome=arenavideocall.scripts.arena_video_call_chrome:main'],
     },
     install_requires=[
         'arena-py>=0.1.42,<1',
