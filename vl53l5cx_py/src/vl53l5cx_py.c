@@ -232,6 +232,7 @@ int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char* dev_path,
 	
 	if (status) {
 		printf("VL53L5CX Set i2c Failed \n");
+		vl53l5cx_py_comms_close(&(dev_conf)->platform);
 		return status;
 	}
 	printf("set addresses success\n");
@@ -239,6 +240,7 @@ int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char* dev_path,
 	status = vl53l5cx_init(dev_conf);
 	if (status) {
 		printf("VL53L5CX ULD Loading failed\n");
+		vl53l5cx_py_comms_close(&(dev_conf)->platform);
 		return status;
 	}
 	printf("Initialized\n");	

@@ -13,9 +13,11 @@ Or for development, clone the repo and from inside the directory:
 pip install -e .
 ```
 
-## Commands
+The `vl53l5cx_py` module requires Linux i2c interface (`linux/i2c.h` and `linux/i2c-dev.h`).
 
-### Video Call
+## Modules
+
+### arenavideocall
 
 After installing the repo, you should now have the `arena-video-call-chrome` command. You can also run it with `python3 -m arena-video-call-chrome`. It uses the [standard arena-py scene environment variables](https://arena.conix.io/content/python/#running-from-the-command-line).
 
@@ -24,7 +26,7 @@ The first argument sets the surface that the video should be mapped to. For exam
 MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideobox
 ```
 
-### VL53L5CX
+### vl53l5cx_py
 
 C shared library
 ```bash
