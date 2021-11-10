@@ -65,8 +65,6 @@
 #include "vl53l5cx_api.h"
 #include "vl53l5cx_buffers.h"
 
-#include <stdio.h>
-
 /**
  * @brief Inner function, not available outside this file. This function is used
  * to wait for an answer from VL53L5CX sensor.
@@ -120,6 +118,7 @@ static uint8_t _vl53l5cx_send_offset_data(
 	uint8_t dss_4x4[] = {0x0F, 0x04, 0x04, 0x00, 0x08, 0x10, 0x10, 0x07};
 	uint8_t footer[] = {0x00, 0x00, 0x00, 0x0F, 0x03, 0x01, 0x01, 0xE4};
 	int8_t i, j;
+	uint16_t k;
 
 	(void)memcpy(p_dev->temp_buffer,
                p_dev->offset_data, VL53L5CX_OFFSET_BUFFER_SIZE);
@@ -160,8 +159,11 @@ static uint8_t _vl53l5cx_send_offset_data(
             SwapBuffer(p_dev->temp_buffer, VL53L5CX_OFFSET_BUFFER_SIZE);
 	}
 
-	(void)memcpy(p_dev->temp_buffer, &(p_dev->temp_buffer[8]),
-		VL53L5CX_OFFSET_BUFFER_SIZE - (uint16_t)4);
+	for(k = 0; k < (VL53L5CX_OFFSET_BUFFER_SIZE - (uint16_t)4); k++)
+	{
+		p_dev->temp_buffer[k] = p_dev->temp_buffer[k + (uint16_t)8];
+	}
+
 	(void)memcpy(&(p_dev->temp_buffer[0x1E0]), footer, 8);
 	status |= WrMulti(&(p_dev->platform), 0x2e18, p_dev->temp_buffer,
 		VL53L5CX_OFFSET_BUFFER_SIZE);
@@ -406,13 +408,10 @@ uint8_t vl53l5cx_set_i2c_address(
 	uint8_t status = VL53L5CX_STATUS_OK;
 
 	status |= WrByte(&(p_dev->platform), 0x7fff, 0x00);
-	//printf("%d\n", status);
 	status |= WrByte(&(p_dev->platform), 0x4, (uint8_t)(i2c_address >> 1));
-	//printf("%d\n", status);
-	//status |= WrByte(&(p_dev->platform), 0x7fff,0x02);
 	p_dev->platform.address = i2c_address;
 	status |= WrByte(&(p_dev->platform), 0x7fff, 0x02);
-	//printf("%d\n", status);	
+
 	return status;
 }
 

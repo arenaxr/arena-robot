@@ -120,7 +120,7 @@ uint8_t vl53l5cx_get_detection_thresholds(
 
 	for(i = 0; i < (uint8_t)VL53L5CX_NB_THRESHOLDS; i++)
 	{
-		switch(p_thresholds->measurement)
+		switch(p_thresholds[i].measurement)
 		{
 			case VL53L5CX_DISTANCE_MM:
 				p_thresholds[i].param_low_thresh  /= 4;
@@ -164,7 +164,7 @@ uint8_t vl53l5cx_set_detection_thresholds(
 
 	for(i = 0; i < (uint8_t) VL53L5CX_NB_THRESHOLDS; i++)
 	{
-		switch(p_thresholds->measurement)
+		switch(p_thresholds[i].measurement)
 		{
 			case VL53L5CX_DISTANCE_MM:
 				p_thresholds[i].param_low_thresh  *= 4;

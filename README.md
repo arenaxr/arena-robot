@@ -24,6 +24,13 @@ The first argument sets the surface that the video should be mapped to. For exam
 MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-robot-video-call-chrome avideobox
 ```
 
+### VL53L5CX
+
+C shared library
+```bash
+gcc -fPIC -shared -o vl53l5cx.so -Ivl53l5cx_py/include -Ivl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/platform -Ivl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/uld-driver/inc vl53l5cx_py/src/*.c vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/platform//*.c vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/uld-driver/src/*.c -l
+```
+
 ## License
 
 Copyright (c) 2021, The CONIX Research Center

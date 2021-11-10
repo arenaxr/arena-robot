@@ -65,18 +65,69 @@ jobs:
         shell: bash
         run: python -m pip install dist/*.tar.gz
   build-python-wheel:
-    name: Build Wheel
-    runs-on: ubuntu-20.04
+    name: Build Wheel ${{ matrix.python-version }}-${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp36 }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp37 }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp38 }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp39 }
+          - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp39 }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp37 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp36 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp37 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39 }
+          - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp39 }
+          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp37 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp36 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp37 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39 }
+          - { os: ubuntu-20.04, arch: musllinux_aarch64, python-version: cp39 }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp37 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp36 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp37 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38 }
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp39 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp36 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp37 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp38 }
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp39 }
+          # - { os: windows-2019, arch: win_amd64,         python-version: cp36 }
+          # - { os: windows-2019, arch: win_amd64,         python-version: cp37 }
+          # - { os: windows-2019, arch: win_amd64,         python-version: cp38 }
+          # - { os: windows-2019, arch: win_amd64,         python-version: cp39 }
+          # - { os: windows-2019, arch: win_amd64,         python-version: pp37 }
+          # - { os: windows-2019, arch: win32,             python-version: cp36 }
+          # - { os: windows-2019, arch: win32,             python-version: cp37 }
+          # - { os: windows-2019, arch: win32,             python-version: cp38 }
+          # - { os: windows-2019, arch: win32,             python-version: cp39 }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp36 }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp37 }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38 }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39 }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp37 }
+          # - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38 }
+          # - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39 }
+          # - { os: macos-10.15,  arch: macosx_universal2, python-version: cp38 }
+          # - { os: macos-10.15,  arch: macosx_universal2, python-version: cp39 }
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        name: Install Python
+      - name: Set up QEMU
+        if: runner.os == 'Linux' && matrix.arch != 'manylinux_x86_64'
+        uses: docker/setup-qemu-action@v1
         with:
-          python-version: 3.9
-      - name: Install Python build tool
-        run: python -m pip install build
-      - name: Build wheel
-        run: python -m build --wheel --outdir wheelhouse/
+          platforms: all
+      - name: Build Wheel
+        uses: pypa/cibuildwheel@v2.2.2
+        env:
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BUILD: ${{ matrix.python-version }}-${{ matrix.arch }}
+          CIBW_ARCHS: 'all'
       - name: Display structure of wheelhouse files
         run: ls -R
         working-directory: wheelhouse
@@ -85,6 +136,9 @@ jobs:
         run: find . -type f -name "*.whl" -exec sha256sum {} \;
         working-directory: wheelhouse
       - uses: actions/upload-artifact@v2
+        # Some QEMU+Cython float precision issue, so do not upload/bundle artifact for now
+        # Just want to be sure builds and runs without error
+        if: matrix.arch != 'manylinux_i686' && matrix.arch != 'manylinux_aarch64'
         with:
           name: python-dist
           path: ./wheelhouse/*.whl
@@ -127,7 +181,8 @@ jobs:
       working-directory: python-dist
     - name: Archive python-dist
       run:  >
-        tar -czvf python-dist-arena-robot-${GITHUB_REF##*/}-all.tar.gz -C python-dist .
+        tar -czvf python-dist-arena-robot-${GITHUB_REF##*/}-all.tar.gz -C python-dist . &&
+        (cd python-dist; for f in *.tar.gz; do cp "$f" "../python-sdist-$f"; done; cd ../)
     - name: SHA256 files
       run: find . -type f -name "*.tar.gz" -exec sha256sum {} \;
     - name: Release
@@ -135,8 +190,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
+        prerelease: ${{ contains(github.event.ref, '-pre') || contains(github.event.ref, '-alpha') || contains(github.event.ref, '-beta') || contains(github.event.ref, '-rc') || contains(github.event.ref, '-dev') }}
         files: |
           *.tar.gz
-          python-dist/*.tar.gz
-          python-dist/*.whl
 

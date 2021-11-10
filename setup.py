@@ -11,12 +11,28 @@ This source code is licensed under the BSD-3-Clause license found in the
 LICENSE file in the root directory of this source tree.
 """
 
+from glob import glob
+from Cython.Build import cythonize
 import pathlib
-from setuptools import setup, find_packages
+from setuptools import setup, Extension, find_packages
+import numpy
 
 here = pathlib.Path(__file__).parent.resolve()
 
 long_description = (here / 'README.md').read_text(encoding='utf-8')
+
+extensions = [
+    Extension("vl53l5cx_py",
+              (["./vl53l5cx_py/cython/vl53l5cx_py_wrapper.pyx"] +
+               glob("./vl53l5cx_py/src/*.c") +
+               glob("./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/uld-driver/src/*.c") +
+               glob("./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/platform/*.c")),
+              include_dirs=["./vl53l5cx_py/include",
+                            "./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/uld-driver/inc",
+                            "./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/platform",
+                            numpy.get_include()]
+    )
+]
 
 setup(
     name="arena-robot",
@@ -28,6 +44,8 @@ setup(
     author_email="info@conix.io",
     python_requires='>=3.6, <4',
     packages=find_packages(),
+    ext_modules=cythonize(extensions),
+    zip_safe=False,
     platforms=["any"],
     url="https://github.com/conix-center/ARENA-robot",
     project_urls={

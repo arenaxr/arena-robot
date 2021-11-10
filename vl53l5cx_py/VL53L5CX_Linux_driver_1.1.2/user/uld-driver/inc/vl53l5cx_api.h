@@ -63,13 +63,19 @@
 #ifndef VL53L5CX_API_H_
 #define VL53L5CX_API_H_
 
+#if defined (__ARMCC_VERSION) && (__ARMCC_VERSION < 6010050)
+#pragma anon_unions
+#endif
+
+
+
 #include "platform.h"
 
 /**
  * @brief Current driver version.
  */
 
-#define VL53L5CX_API_REVISION			"VL53L5CX_1.1.0"
+#define VL53L5CX_API_REVISION			"VL53L5CX_1.1.2"
 
 /**
  * @brief Default I2C address of VL53L5CX sensor. Can be changed using function
@@ -379,7 +385,7 @@ typedef struct
 #endif
 
 	/* Motion detector results */
-#ifndef VL53L5CX_DISABLE_MOTION_DETECTOR
+#ifndef VL53L5CX_DISABLE_MOTION_INDICATOR
 	struct
 	{
 		uint32_t global_indicator_1;

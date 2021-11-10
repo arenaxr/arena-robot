@@ -22,6 +22,12 @@ include LICENSE
 # Include setup.py
 include setup.py
 
+graft vl53l5cx_py/cython
+graft vl53l5cx_py/include
+graft vl53l5cx_py/src
+graft VL53L5CX_Linux_driver_*/user/platform
+graft VL53L5CX_Linux_driver_*/user/uld-driver
+
 graft arenarobot
 prune misc-demo
 prune .github

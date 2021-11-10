@@ -131,7 +131,6 @@ int32_t vl53l5cx_comms_close(VL53L5CX_Platform * p_platform)
 
 int32_t write_read_multi(
 		int fd,
-		uint8_t i2c_addr,
 		uint16_t reg_address,
 		uint8_t *pdata,
 		uint32_t count,
@@ -164,7 +163,7 @@ int32_t write_read_multi(
 			i2c_buffer[0] = (reg_address + position) >> 8;
 			i2c_buffer[1] = (reg_address + position) & 0xFF;
 
-			messages[0].addr = i2c_addr >> 1;
+			messages[0].addr = 0x29;
 			messages[0].flags = 0; //I2C_M_WR;
 			messages[0].len = data_size + 2;
 			messages[0].buf = i2c_buffer;
@@ -186,12 +185,12 @@ int32_t write_read_multi(
 			i2c_buffer[0] = (reg_address + position) >> 8;
 			i2c_buffer[1] = (reg_address + position) & 0xFF;
 
-			messages[0].addr = i2c_addr >> 1;
+			messages[0].addr = 0x29;
 			messages[0].flags = 0; //I2C_M_WR;
 			messages[0].len = 2;
 			messages[0].buf = i2c_buffer;
 
-			messages[1].addr = i2c_addr >> 1;
+			messages[1].addr = 0x29;
 			messages[1].flags = I2C_M_RD;
 			messages[1].len = data_size;
 			messages[1].buf = pdata + position;
@@ -213,23 +212,20 @@ int32_t write_read_multi(
 
 int32_t write_multi(
 		int fd,
-		uint8_t i2c_addr,
 		uint16_t reg_address,
 		uint8_t *pdata,
 		uint32_t count)
 {
-	return(write_read_multi(fd, i2c_addr, reg_address, pdata, count, 1));
+	return(write_read_multi(fd, reg_address, pdata, count, 1));
 }
 
 int32_t read_multi(
 		int fd,
-		uint8_t i2c_addr,
 		uint16_t reg_address,
 		uint8_t *pdata,
 		uint32_t count)
 {
-	
-	return(write_read_multi(fd, i2c_addr, reg_address, pdata, count, 0));
+	return(write_read_multi(fd, reg_address, pdata, count, 0));
 }
 
 uint8_t RdByte(
@@ -237,16 +233,15 @@ uint8_t RdByte(
 		uint16_t reg_address,
 		uint8_t *p_value)
 {
-	return(read_multi(p_platform->fd,p_platform->address, reg_address, p_value, 1));
+	return(read_multi(p_platform->fd, reg_address, p_value, 1));
 }
 
 uint8_t WrByte(
 		VL53L5CX_Platform * p_platform,
 		uint16_t reg_address,
 		uint8_t value)
-{	
-	//printf("ADDR: %x\n", p_platform->address);
-	return(write_multi(p_platform->fd, p_platform->address, reg_address, &value, 1));
+{
+	return(write_multi(p_platform->fd, reg_address, &value, 1));
 }
 
 uint8_t RdMulti(
@@ -255,7 +250,7 @@ uint8_t RdMulti(
 		uint8_t *p_values,
 		uint32_t size)
 {
-	return(read_multi(p_platform->fd, p_platform->address, reg_address, p_values, size));
+	return(read_multi(p_platform->fd, reg_address, p_values, size));
 }
 
 uint8_t WrMulti(
@@ -264,7 +259,7 @@ uint8_t WrMulti(
 		uint8_t *p_values,
 		uint32_t size)
 {
-	return(write_multi(p_platform->fd,p_platform->address, reg_address, p_values, size));
+	return(write_multi(p_platform->fd, reg_address, p_values, size));
 }
 
 void SwapBuffer(
