@@ -53,16 +53,23 @@ setup(
         'Source': 'https://github.com/conix-center/ARENA-robot',
     },
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
+        'Framework :: Robot Framework',
         'Intended Audience :: Developers',
+        'Intended Audience :: Education',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Telecommunications Industry',
         'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: C',
+        'Programming Language :: Cython',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3 :: Only',
         'Topic :: Scientific/Engineering',
-        'Framework :: Robot Framework'
+        'Topic :: System :: Distributed Computing',
+        'Topic :: System :: Hardware'
     ],
-    keywords='arena robot ar vr robotics',
+    keywords='arena robot ar vr robotics drone lidar vl53l5cx stm selenium jitsi video videocall conference',
     entry_points = {
         'console_scripts': ['arena-video-call-chrome=arenavideocall.scripts.arena_video_call_chrome:main'],
     },
