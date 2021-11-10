@@ -32,7 +32,7 @@ typedef enum XYZ_Coordinates_Transform_t {
 } XYZ_Coordinates_Transform_t;
 
 int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char *dev_path,
-                         uint8_t target_addr, uint8_t freq);
+                         uint16_t target_addr, uint8_t freq);
 int32_t vl53l5cx_py_close(VL53L5CX_Configuration* dev_conf);
 int32_t vl53l5cx_py_start_ranging(VL53L5CX_Configuration* dev_conf);
 int32_t vl53l5cx_py_stop_ranging(VL53L5CX_Configuration* dev_conf);

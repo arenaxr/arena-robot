@@ -200,7 +200,7 @@ int32_t vl53l5cx_py_comms_close(VL53L5CX_Platform* p_platform) {
 }
 
 int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char* dev_path,
-                         uint8_t target_addr, uint8_t freq) {
+                         uint16_t target_addr, uint8_t freq) {
 	if (freq > 15) {
 		printf("VL53L5CX Ranging Frequency too high for 8x8 (<=15hz)\n");
 		return -1;
