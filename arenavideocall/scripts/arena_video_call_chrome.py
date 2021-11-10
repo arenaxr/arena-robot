@@ -22,7 +22,7 @@ from platform import node
 from arena import Scene
 from selenium.webdriver import Chrome, ChromeOptions
 
-from arenavideocall.video_call import VideoCall
+from arenavideocall import VideoCall
 
 
 def main() -> int:

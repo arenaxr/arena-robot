@@ -29,5 +29,6 @@ graft VL53L5CX_Linux_driver_*/user/platform
 graft VL53L5CX_Linux_driver_*/user/uld-driver
 
 graft arenarobot
+graft arenavideocall
 prune misc-demo
 prune .github
