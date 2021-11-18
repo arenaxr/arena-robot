@@ -19,26 +19,13 @@
 extern "C" {
 #endif
 
-typedef struct {
-	double Xpos[64];
-	double Ypos[64];
-	double Zpos[64];
-} XYZ_ZoneCoordinates_t;
-
-typedef enum XYZ_Coordinates_Transform_t {
-	XYZ_COORDINATES_TRANSFORM_FORWARD = 0,
-	XYZ_COORDINATES_TRANSFORM_LEFT = 1,
-	XYZ_COORDINATES_TRANSFORM_RIGHT = 2,
-} XYZ_Coordinates_Transform_t;
-
 int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char *dev_path,
                          uint16_t target_addr, uint8_t freq);
 int32_t vl53l5cx_py_close(VL53L5CX_Configuration* dev_conf);
 int32_t vl53l5cx_py_start_ranging(VL53L5CX_Configuration* dev_conf);
 int32_t vl53l5cx_py_stop_ranging(VL53L5CX_Configuration* dev_conf);
 int32_t vl53l5cx_py_get_range(VL53L5CX_Configuration* dev_conf,
-                              uint8_t transform,
-							  XYZ_ZoneCoordinates_t XYZ_Coordinates);
+							  VL53L5CX_ResultsData* results);
 
 #ifdef __cplusplus
 } // extern "C"

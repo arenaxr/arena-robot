@@ -28,8 +28,9 @@ def main():
     sensor.start_ranging()
 
     while True:
-        x, y, z = sensor.get_range()
-        print(f"X: {x:.3f}, Y: {y:.3f}, Z: {z:.3f}")
+        results = sensor.get_range()
+        dist = results["distance_mm"][0]
+        print(f"py  results distance_mm[0]: {dist}")
 
 if __name__=="__main__":
    res = main()
