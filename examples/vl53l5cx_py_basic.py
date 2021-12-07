@@ -15,8 +15,6 @@ import argparse
 
 from vl53l5cx_py import VL53L5CX
 
-DEV_PATH = "/dev/i2c-1"
-
 def main():
     parser = argparse.ArgumentParser(
         description='Get data from 1 VL53L5CX sensor.')
@@ -29,8 +27,14 @@ def main():
 
     while True:
         results = sensor.get_range()
-        dist = results["distance_mm"][0]
-        print(f"py  results distance_mm[0]: {dist}")
+        dists = results["distance_mm"]
+        out = ""
+        for i in range(8):
+            for j in range(8):
+                out += '{:4d}'.format(results["distance_mm"][(i*8) + j])
+                out += " "
+            out += "\n"
+        print(out)
 
 if __name__=="__main__":
    res = main()
