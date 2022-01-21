@@ -35,16 +35,16 @@ int32_t vl53l5cx_py_comms_init(VL53L5CX_Platform* p_platform,
 							   const char *dev_path) {
 	p_platform->fd = open(dev_path, O_RDONLY);
 	if (p_platform->fd == -1) {
-		printf("Failed to open %s\n", dev_path);
+		printf("VL53L5CX_PY Failed to open %s\n", dev_path);
 		return VL53L5CX_PI_COMMS_ERROR;
 	}
 
 	if (ioctl(p_platform->fd, I2C_SLAVE, 0x29) <0) {
-		printf("Could not speak to the device on the i2c bus\n");
+		printf("VL53L5CX_PY Could not speak to the device on the i2c bus\n");
 		return VL53L5CX_PI_COMMS_ERROR;
 	}
 
-	printf("Opened ST TOF Dev = %d\n", p_platform->fd);
+	printf("VL53L5CX_PY Opened ST TOF Dev = %d\n", p_platform->fd);
 
 	return 0;
 }
@@ -54,10 +54,11 @@ int32_t vl53l5cx_py_comms_close(VL53L5CX_Platform* p_platform) {
 	return 0;
 }
 
-int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char* dev_path,
-                         uint16_t target_addr, uint8_t freq) {
+int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf,
+                         const char* dev_path, uint16_t target_addr,
+						 uint8_t freq) {
 	if (freq > 15) {
-		printf("VL53L5CX Ranging Frequency too high for 8x8 (<=15hz)\n");
+		printf("VL53L5CX_PY Ranging Frequency too high for 8x8 (<=15hz)\n");
 		return -1;
 	}
 
@@ -65,7 +66,7 @@ int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char* dev_path,
 	(&(dev_conf->platform))->address = VL53L5CX_DEFAULT_I2C_ADDRESS;
 	status |= vl53l5cx_py_comms_init(&(dev_conf)->platform, dev_path);
     if (status) {
-        printf("VL53L5CX comms init failed\n");
+        printf("VL53L5CX_PY comms init failed\n");
         return -1;
     }
 	
@@ -82,40 +83,41 @@ int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char* dev_path,
 		return status;
 	}
 	*/
-	
+
 	status = vl53l5cx_set_i2c_address(dev_conf, target_addr);
 	if (status) {
-		printf("VL53L5CX Set i2c Failed \n");
+		printf("VL53L5CX_PY Set I2C address Failed \n");
 		vl53l5cx_py_comms_close(&(dev_conf)->platform);
 		return status;
 	}
-	printf("set addresses success\n");
+	printf("VL53L5CX_PY Set I2C address success 0x%x\n",
+	       (&(dev_conf->platform))->address);
 
 	status = vl53l5cx_init(dev_conf);
 	if (status) {
-		printf("VL53L5CX ULD Loading failed\n");
+		printf("VL53L5CX_PY ULD Loading failed\n");
 		vl53l5cx_py_comms_close(&(dev_conf)->platform);
 		return status;
 	}
-	printf("Initialized\n");	
+	printf("VL53L5CX_PY Initialized\n");
 	
 	status = vl53l5cx_set_resolution(dev_conf, VL53L5CX_RESOLUTION_8X8);
 	if (status) {
-		printf("VL53L5CX set resolution failed\n");
+		printf("VL53L5CX_PY set resolution failed\n");
 		vl53l5cx_py_comms_close(&(dev_conf)->platform);
 		return status;
 	}
-	printf("set resolution success\n");
+	printf("VL53L5CX_PY set resolution success\n");
 
 	status = vl53l5cx_set_ranging_frequency_hz(dev_conf, freq);
 	if (status) {
-		printf("VL53L5CX set ranging frequency failed\n");
+		printf("VL53L5CX_PY set ranging frequency failed\n");
 		vl53l5cx_py_comms_close(&(dev_conf)->platform);
 		return status;
 	}
-	printf("set ranging frequency success\n");
+	printf("VL53L5CX_PY set ranging frequency success\n");
 
-	printf("VL53L5CX ULD ready ! (Version : %s)\n",
+	printf("VL53L5CX_PY ULD ready ! (Version : %s)\n",
 			VL53L5CX_API_REVISION);
 	return 0;
 }
@@ -123,7 +125,7 @@ int32_t vl53l5cx_py_init(VL53L5CX_Configuration* dev_conf, const char* dev_path,
 int32_t vl53l5cx_py_close(VL53L5CX_Configuration* dev_conf) {
 	int32_t status = 0;
 	status = vl53l5cx_py_comms_close(&(dev_conf)->platform);
-	if (status == 0) printf("closed\n");
+	if (status == 0) printf("VL53L5CX_PY closed\n");
 
 	return status;
 }
@@ -131,7 +133,7 @@ int32_t vl53l5cx_py_close(VL53L5CX_Configuration* dev_conf) {
 int32_t vl53l5cx_py_start_ranging(VL53L5CX_Configuration* dev_conf) {
 	int32_t status = 0;
 	status = vl53l5cx_start_ranging(dev_conf);
-	if (status == 0) printf("started ranging\n");
+	if (status == 0) printf("VL53L5CX_PY started ranging\n");
 
 	return status;
 }
@@ -139,7 +141,7 @@ int32_t vl53l5cx_py_start_ranging(VL53L5CX_Configuration* dev_conf) {
 int32_t vl53l5cx_py_stop_ranging(VL53L5CX_Configuration* dev_conf) {
 	int32_t status = 0;
 	status = vl53l5cx_stop_ranging(dev_conf);
-	if (status == 0) printf("stopped ranging\n");
+	if (status == 0) printf("VL53L5CX_PY stopped ranging\n");
 	return status;
 }
 

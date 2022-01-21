@@ -27,7 +27,6 @@ def main():
 
     while True:
         results = sensor.get_range()
-        dists = results["distance_mm"]
         out = ""
         for i in range(8):
             for j in range(8):

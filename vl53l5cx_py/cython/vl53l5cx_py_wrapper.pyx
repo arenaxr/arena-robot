@@ -87,6 +87,9 @@ cdef class VL53L5CX:
     cdef VL53L5CX_Configuration dev_conf
     cdef bint ranging
 
+    DEFAULT_ADDR = np.uint16(VL53L5CX_PY_DEFAULT_ADDR)
+    DEFAULT_FREQ = np.uint8(VL53L5CX_PY_DEFAULT_FREQ)
+
     def __cinit__(self, dev_path: str,
                   target_addr: np.uint16_t = VL53L5CX_PY_DEFAULT_ADDR,
                   freq: np.uint8_t = VL53L5CX_PY_DEFAULT_FREQ) -> None:
