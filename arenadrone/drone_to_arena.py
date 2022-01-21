@@ -62,7 +62,6 @@ def progress(string):
 # Default configurations for connection to the FCU
 connection_string_default = '/dev/ttyS0'
 connection_baudrate_default = 115200
-connection_timeout_sec_default = 5
 
 # Transformation to convert different camera orientations to NED convention. Replace camera_orientation_default for your configuration.
 #   0: Forward, USB port to the right
@@ -256,7 +255,7 @@ def update_arena_pos():
             return
         pf_data = pf.getTagLoc()
     print("ARENA", pf_data[2], pf_data[4], -pf_data[3], pf_data[5])
-    pfOutFile.write(f"{str(pf_data[1])},{str(pf_data[2])},{str(pf_data[3])},{str(pf_data[4])},{str(pf_data[5])}, \n")
+    pfOutFile.write(f"{str(time.time())},{str(pf_data[1])},{str(pf_data[2])},{str(pf_data[3])},{str(pf_data[4])},{str(pf_data[5])}\n")
     arena_drone.update_attributes(position=Position(pf_data[2], pf_data[4], -pf_data[3]), rotation=Rotation(arena_attitude[0], arena_attitude[1]+pf_data[5]*RAD_TO_DEG, arena_attitude[2]))#, battery=Attribute(battery=arena_batt))
     scene.update_object(arena_drone)
 
@@ -269,7 +268,7 @@ def arena_uwb_location_update(tag):
 
 def arena_get_uwb_locations():
     global uwb_locations
-    print("Get loc")
+    print("GETTING UWB LOCATIONS FROM ARENA")
     for i in scene.all_objects:
         if ('armarker' in scene.all_objects[i].data and scene.all_objects[i].data.armarker.markertype == "uwb"):
             scene.all_objects[i].update_handler = arena_uwb_location_update
@@ -301,11 +300,12 @@ if enable_uwb:
     uwb.write(b"AT+RATE 10\n")
     if not enable_arena:
         uwb_locations = {
-            7: [1.828, 1.749, 2.558],
-            8: [2.806, 0.799, -1.901],
-            9: [-1.82, 0.168, 1.955],
-            10: [-2.94, 2.804, -2.126],
-            11: [1.334, 2.052, -3.678]
+            7: [1.988, 1.749, 2.608],
+            8: [2.966, 0.799, -1.851],
+            9: [-1.66, 0.168, 2.005],
+            10: [-2.78, 2.804, -2.076],
+            11: [1.494, 2.052, -3.628],
+            13: [-0.324, 3.137, -0.44]
         }
 
 ####################################
@@ -333,7 +333,7 @@ def uwb_loop():
                 with pf_lock:
                     try:
                         # print("RANGE", np.float32(x), np.float32(-z), np.float32(y), np.float32(float(curData[1])))
-                        pfLocFile.write(f"UWB,{str(x)},{str(-z)},{str(y)},{str(float(curData[1]))},0.1\n")
+                        pfLocFile.write(f"UWB,{time.time()},{int(curData[0])},{str(x)},{str(-z)},{str(y)},{str(float(curData[1]))},0.1\n")
                         pf.depositRange(np.float32(x), np.float32(-z), np.float32(y), np.float32(float(curData[1])), 0.1)
                         pfStatus |= 1
                     except:
@@ -350,6 +350,7 @@ def mavlink_loop():
         m = conn.recv_match(type=interesting_messages, timeout=1, blocking=True)
         if m is None:
             continue
+        # print(m.get_type())
         mavlink_callbacks[m.get_type()](m)
 
 # https://mavlink.io/en/messages/common.html#VISION_POSITION_ESTIMATE
@@ -423,12 +424,14 @@ def send_vision_speed_estimate_message():
 
 # Send a mavlink SET_GPS_GLOBAL_ORIGIN message (http://mavlink.org/messages/common#SET_GPS_GLOBAL_ORIGIN), which allows us to use local position information without a GPS.
 def set_default_global_origin():
-    conn.mav.set_gps_global_origin_send(
-        1,
-        home_lat, 
-        home_lon,
-        home_alt
-    )
+    with drone_lock:
+        print("SENDING GLOBAL ORIGIN")
+        conn.mav.set_gps_global_origin_send(
+            1,
+            home_lat, 
+            home_lon,
+            home_alt
+        )
 
 # Send a mavlink SET_HOME_POSITION message (http://mavlink.org/messages/common#SET_HOME_POSITION), which allows us to use local position information without a GPS.
 def set_default_home_position():
@@ -441,19 +444,20 @@ def set_default_home_position():
     approach_y = 0
     approach_z = 1
 
-    conn.mav.set_home_position_send(
-        1,
-        home_lat, 
-        home_lon,
-        home_alt,
-        x,
-        y,
-        z,
-        q,
-        approach_x,
-        approach_y,
-        approach_z
-    )
+    with drone_lock:
+        conn.mav.set_home_position_send(
+            1,
+            home_lat, 
+            home_lon,
+            home_alt,
+            x,
+            y,
+            z,
+            q,
+            approach_x,
+            approach_y,
+            approach_z
+        )
 
 def set_mode(mode):
     mode_map = conn.mode_mapping()
@@ -570,7 +574,7 @@ def reboot():
 def att_msg_callback(value):
     global heading_north_yaw, arena_attitude
     arduAttFile.write(str(time.time()) + "," + str(value.roll) + "," + str(value.pitch) + "," + str(value.yaw) + "\n")
-    print(value)
+    # print(value)
     if heading_north_yaw is None:
         heading_north_yaw = value.yaw
         progress("INFO: Received first ATTITUDE message with heading yaw %.2f degrees" % m.degrees(heading_north_yaw))
@@ -588,16 +592,20 @@ def global_msg_callback(value):
     print(f"GLOBAL: {str(value.lat / METER_TO_LATLNG)}, {str(value.lon / METER_TO_LATLNG)}, {str(-value.alt / 1000)}")
     #vx, vy, vz, hdg
 
+def local_msg_callback(value):
+    print(value)
+
 def home_msg_callback(value):
     global home_msg_received
     print(value)
-    alt_offset = value.altitude / 1000
-    print("ALT_OFFSET", alt_offset)
-    home_msg_received = True
+    if not home_msg_received:
+        alt_offset = value.altitude / 1000
+        print("ALT_OFFSET", alt_offset)
+        home_msg_received = True
 
 def imu_msg_callback(value):
-    imuFile.write(f"{value.xacc},{value.yacc},{value.xgyro},{value.ygyro},{value.zgyro}\n")
-    pass
+    # print(value)
+    imuFile.write(f"{time.time()},{value.xacc},{value.yacc},{value.zacc},{value.xgyro},{value.ygyro},{value.zgyro},{value.xmag},{value.ymag},{value.zmag}\n")
 
 def batt_msg_callback(value):
     global arena_batt
@@ -707,6 +715,7 @@ conn = mavutil.mavlink_connection(
 mavlink_callbacks = {
     'ATTITUDE': att_msg_callback,
     'GLOBAL_POSITION_INT': global_msg_callback,
+    'LOCAL_POSITION_NED': local_msg_callback,
     'MODE':mode_msg_callback,
     'HOME_POSITION':home_msg_callback,
     'RAW_IMU':imu_msg_callback,
@@ -729,7 +738,7 @@ signal.setitimer(signal.ITIMER_REAL, 0)  # cancel alarm
 # Try getting a frame:
 signal.setitimer(signal.ITIMER_REAL, 5)  # seconds...
 pipe.try_wait_for_frames(3000)
-print('Camera sending frames.')
+print('T265 sending frames.')
 signal.setitimer(signal.ITIMER_REAL, 0)  # cancel alarm
 
 
@@ -769,7 +778,8 @@ signal.signal(signal.SIGTERM, sigterm_handler)
 ##################################
 
 def main():
-    global main_loop_should_quit, pipe, H_aeroRef_aeroBody, H_aeroRef_T265Ref, H_T265body_aeroBody, V_aeroRef_aeroBody, current_confidence_level, heading_north_yaw, prev_data, pfStatus, reset_counter
+    print("STARTING MAIN THREAD")
+    global main_loop_should_quit, pipe, H_aeroRef_aeroBody, H_aeroRef_T265Ref, H_T265body_aeroBody, V_aeroRef_aeroBody, current_confidence_level, heading_north_yaw, prev_data, pfStatus, reset_counter, realsense_resetting, current_time_us
     if compass_enabled == 1:
         time.sleep(1) # Wait a short while for yaw to be correctly initiated
     try:
@@ -784,10 +794,11 @@ def main():
                 pipe.stop()
                 increment_reset_counter()
                 realsense_resetting = True
+                time.sleep(1)
                 signal.setitimer(signal.ITIMER_REAL, 5)  # 5 second timeout
                 realsense_connect()
                 signal.setitimer(signal.ITIMER_REAL, 0)  # cancel
-                relasense_resetting = False
+                realsense_resetting = False
                 set_mode("GUIDED")
                 continue
 
@@ -857,7 +868,7 @@ def main():
 
                     with pf_lock:
                         # print("VIO: ", np.float32(H_aeroRef_aeroBody[0][3]), np.float32(-H_aeroRef_aeroBody[1][3]), np.float32(-H_aeroRef_aeroBody[2][3]))
-                        pfLocFile.write(f"VIO,{str(time.time())}, {str(H_aeroRef_aeroBody[0][3])}, {str(-H_aeroRef_aeroBody[1][3])}, {str(-H_aeroRef_aeroBody[2][3])}, 0\n")
+                        pfLocFile.write(f"VIO,{str(time.time())},{str(-H_aeroRef_aeroBody[0][3])},{str(H_aeroRef_aeroBody[1][3])},{str(-H_aeroRef_aeroBody[2][3])},0\n")
                         pf.depositVio(np.float64(time.time()), np.float32(-H_aeroRef_aeroBody[0][3]), np.float32(H_aeroRef_aeroBody[1][3]), np.float32(-H_aeroRef_aeroBody[2][3]), 0)
                         pfStatus |= 2
 
@@ -886,12 +897,14 @@ mavlink_thread = threading.Thread(target=mavlink_loop)
 mavlink_thread.start()
 
 if enable_uwb:
+    print("STARTING UWB")
     uwb_thread = threading.Thread(target=uwb_loop)
     uwb_thread.start()
 
 # Send MAVlink messages in the background at pre-determined frequencies
 sched = BackgroundScheduler()
 if enable_msg_vision_position_estimate and vision_position_estimate_msg_hz > 0:
+    print("SCHEDULING POSITION EVERY: " + str(1/vision_position_estimate_msg_hz))
     sched.add_job(send_vision_position_estimate_message, 'interval', seconds = 1/vision_position_estimate_msg_hz)
 
 if enable_msg_vision_speed_estimate and vision_speed_estimate_msg_hz > 0:
@@ -939,40 +952,30 @@ def fly_box():
             return
 
 #Main blocking portion
+wait_drone_ready()
+print("START")
+time.sleep(1)
+
+set_mode("GUIDED")
+set_drone_speed(0, 32)
+set_drone_speed(1, 32)
+set_drone_speed(2, 32)
+set_drone_speed(3, 32)
+time.sleep(1)
+print("TAKEOFF")
+takeoff(2)
+
+box_thread = threading.Thread(target=fly_box)
+box_thread.start()
+
 if enable_arena:
-    wait_drone_ready()
-    set_drone_speed(0, 32)
-    set_drone_speed(1, 32)
-    set_drone_speed(2, 32)
-    set_drone_speed(3, 32)
-    time.sleep(1)
-    takeoff(2)
-
-    box_thread = threading.Thread(target=fly_box)
-    box_thread.start()
-
     scene.run_tasks()
-    main_loop_should_quit = True
-    threads_should_exit = True
 else:
-    wait_drone_ready()
-    print("START")
-    time.sleep(1)
-
-    set_mode("GUIDED")
-    set_drone_speed(0, 32)
-    set_drone_speed(1, 32)
-    set_drone_speed(2, 32)
-    set_drone_speed(3, 32)
-    time.sleep(1)
-    print("TAKEOFF")
-    takeoff(2)
-
-    box_thread = threading.Thread(target=fly_box)
-    box_thread.start()
-    
     while not main_loop_should_quit:
         time.sleep(0.5)
+
+main_loop_should_quit = True
+threads_should_exit = True
 
 #Cleanup
 sched.shutdown()
