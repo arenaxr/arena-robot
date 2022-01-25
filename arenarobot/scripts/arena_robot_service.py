@@ -25,7 +25,7 @@ def main() -> int:
                         help='service file device path')
     args = parser.parse_args()
 
-    with open(args.service_config_file) as file:
+    with open(args.service_config_file, encoding="utf8") as file:
         service_config = json.load(file)
 
     service_type = service_config.get("service_type", "unknown")

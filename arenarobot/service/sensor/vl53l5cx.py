@@ -44,7 +44,7 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
 
     def setup(self):
         """Set up VL53L5CX sensor."""
-        for i in range(len(self.lpn_pins)):
+        for i in enumerate(self.lpn_pins):
             pin_num = self.lpn_pins[i]
             pin = GPIO(self.gpio_path, pin_num, "out")
             pin.write(False)
