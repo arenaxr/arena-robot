@@ -71,10 +71,13 @@ setup(
     ],
     keywords='arena robot ar vr robotics drone lidar vl53l5cx stm selenium jitsi video videocall conference',
     entry_points = {
-        'console_scripts': ['arena-video-call-chrome=arenavideocall.scripts.arena_video_call_chrome:main'],
+        'console_scripts': [
+            'arena-video-call-chrome=arenavideocall.scripts.arena_video_call_chrome:main',
+            'arena-robot-service=arenarobot.scripts.arena_robot_service:main'
+        ],
     },
     install_requires=[
-        'arena-py>=0.1.42,<1',
+        'arena-py>=0.1.43,<1',
         'numpy>=1,<2',
         'python-periphery>=2,<3'
         'selenium>=3,<4',
