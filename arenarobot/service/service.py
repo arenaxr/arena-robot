@@ -17,7 +17,14 @@ from arena.device import Device
 
 
 class ArenaRobotService():
-    """Service class for the ARENA."""
+    """
+    Service class for the ARENA.
+
+    This class should be created/initialized as normal. Then check if
+    async_service is True. If so, async_setup() should be run. If not, then
+    setup() should be run. Lastly, run start() when the service should begin
+    listening.
+    """
 
     DEVICE_INSTANCE_TYPE = "unknown"
 
@@ -25,12 +32,12 @@ class ArenaRobotService():
     def __init__(self, instance_name: str, subtopic: str,
                  device_instance_type="unknown",
                  device_instance_prefix="",
-                 async_fetch=False, interval_ms=0):
+                 async_service=False, interval_ms=0):
         """Initialize the service class."""
         self.device_instance_type = device_instance_type
         instance_name = f"service_{device_instance_prefix}{instance_name}"
         self.instance_name = instance_name
-        self.async_fetch = async_fetch
+        self.async_service_val = async_service
         self.interval_ms = interval_ms
         self.device = Device()
         self.topic = (f"{self.device.realm}/d/{self.device.namespace}/"
@@ -39,14 +46,21 @@ class ArenaRobotService():
 
         print(f'Using topic {self.topic}')
 
-        self.setup()
-        self.publish({"status": "initialized"})
+    @property
+    def async_service(self):
+        """Assert if this is an async service."""
+        return self.async_service_val
 
     def msg_rx(self, client, userdata, msg):
         """Receive messages."""
 
     def setup(self):
         """Set up sensor."""
+        self.publish({"status": "initialized"})
+
+    async def async_setup(self):
+        """Set up sensor in async."""
+        self.setup()
 
     def publish_msg_base(self):
         """Publish message base."""
@@ -70,11 +84,15 @@ class ArenaRobotService():
         """Fetch data."""
         self.publish({"data": "unknown"})
 
+    async def async_fetch(self):
+        """Fetch data in async."""
+        self.fetch()
+
     def start(self):
         """Start fetching data."""
         self.publish({"status": "starting"})
-        if self.async_fetch:
-            self.device.run_async(self.fetch)
+        if self.async_service:
+            self.device.run_async(self.async_fetch)
         elif self.interval_ms > 0:
             self.device.run_forever(self.fetch, interval_ms=self.interval_ms)
         else:

@@ -12,6 +12,7 @@ LICENSE file in the root directory of this source tree.
 """
 
 import argparse
+import asyncio
 import json
 import sys
 
@@ -35,6 +36,11 @@ def main() -> int:
     service_class = service.SERVICE_TYPE_MAP[service_type]
 
     service_instance = service_class(**service_config)
+    if service_instance.async_service:
+        (asyncio.get_event_loop()
+            .run_until_complete(service_instance.async_setup()))
+    else:
+        service_instance.setup()
     service_instance.start()
 
     return 0

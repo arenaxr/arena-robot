@@ -77,6 +77,7 @@ setup(
         ],
     },
     install_requires=[
+        'aioserial>=1,<2',
         'arena-py>=0.1.43,<1',
         'numpy>=1,<2',
         'python-periphery>=2,<3'

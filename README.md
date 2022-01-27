@@ -26,6 +26,19 @@ Services that stream to MQTT may be started with the `arena-robot-service` comma
  - `subtopic`: Required. The device subtopic to publish to. For sensors this will always be prefixed with `sensors/`.
  - `interval_ms` For services that run repeatedly, this is the interval. Set to 0 by default, which will fire the service once. This option is ignored for async-based services.
 
+#### sensor_beluga_serial
+This is a [Beluga](https://github.com/WiseLabCMU/Beluga) UWB sensor connected via serial:
+
+ - `dev_path`: Required. Path to the serial dev file device. For example, a Beluga USB serial device commonly shows up on Linux as `/dev/ttyACM[0-9]+`. Hardware serial ports are often `/dev/ttyS[0-9]+`. For USB devices, it is best practice to use the full serial device symlink like `/dev/serial/by-id/usb-SEGGER_J-Link_000760025484-if00` so that the connection order does not affect the device assignment. If multiple USB devices of the same type are connected, then the `/dev/serial/by-path/.*` syminks should be used to select the serial device by USB port.
+ - `beluga_id`: Required. ID to assign to Beluga.
+ - `baudrate`: Optional. Defaults to 115200.
+ - `beluga_rate`: Optional. Defaults to 10. Rate in ms that Beluga will query and respond.
+ - `beluga_channel`: Optional. Defaults to unset. See Beluga documentation.
+ - `beluga_tx_power`: Optional. Defaults to unset. See Beluga documentation.
+ - `beluga_timeout`: Optional. Defaults to unset. See Beluga documentation.
+ - `beluga_twr_mode`: Optional. Defaults to unset. See Beluga documentation.
+ - `beluga_led_mode`: Optional. Defaults to unset. See Beluga documentation.
+
 #### sensor_vl53l5cx
 This is a lidar sensor that connects through I2C and addresses by toggling its LPn pins. It additionally supports the following arguments:
 

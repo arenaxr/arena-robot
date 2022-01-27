@@ -1,0 +1,7 @@
+{
+    "service_type": "sensor_beluga_serial",
+    "instance_name": "uwb_1",
+    "subtopic": "uwb",
+    "dev_path": "/dev/serial/by-id/usb-SEGGER_J-Link_000760025484-if00",
+    "beluga_id": 12
+}
