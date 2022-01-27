@@ -24,7 +24,7 @@ Services that stream to MQTT may be started with the `arena-robot-service` comma
  - `service_type`: Required. Currently only `sensor_vl53l5cx` is supported.
  - `instance_name`: Required. The name of this running service.
  - `subtopic`: Required. The device subtopic to publish to. For sensors this will always be prefixed with `sensors/`.
- - `interval_ms` For services that run repeatedly, this is the interval. Set to 0 by default, which will fire the service once.
+ - `interval_ms` For services that run repeatedly, this is the interval. Set to 0 by default, which will fire the service once. This option is ignored for async-based services.
 
 #### sensor_vl53l5cx
 This is a lidar sensor that connects through I2C and addresses by toggling its LPn pins. It additionally supports the following arguments:
