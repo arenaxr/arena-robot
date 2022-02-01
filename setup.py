@@ -16,13 +16,17 @@ from Cython.Build import cythonize
 import pathlib
 from setuptools import setup, Extension, find_packages
 import numpy
+from sys import platform
 
 here = pathlib.Path(__file__).parent.resolve()
 
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
-extensions = [
-    Extension("vl53l5cx_py",
+extensions = []
+
+# vl53l5cx_py only available on Linux
+if platform.startswith('linux'):
+    extensions.append(Extension("vl53l5cx_py",
               (["./vl53l5cx_py/cython/vl53l5cx_py_wrapper.pyx"] +
                glob("./vl53l5cx_py/src/*.c") +
                glob("./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/uld-driver/src/*.c") +
@@ -31,8 +35,12 @@ extensions = [
                             "./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/uld-driver/inc",
                             "./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/platform",
                             numpy.get_include()]
-    )
-]
+    ))
+else:
+    extensions.append(Extension("vl53l5cx_py",
+              (["./vl53l5cx_py/cython/vl53l5cx_py_wrapper.pyx"]),
+              include_dirs=[]
+    ))
 
 setup(
     name="arena-robot",
@@ -42,7 +50,7 @@ setup(
     license='BSD-3-Clause',
     author="Conix Research Center",
     author_email="info@conix.io",
-    python_requires='>=3.6, <4',
+    python_requires='>=3.8, <4',
     packages=find_packages(),
     ext_modules=cythonize(extensions),
     zip_safe=False,
@@ -53,14 +61,13 @@ setup(
         'Source': 'https://github.com/conix-center/ARENA-robot',
     },
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Framework :: Robot Framework',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Telecommunications Industry',
         'License :: OSI Approved :: BSD License',
-        'Operating System :: POSIX :: Linux',
         'Programming Language :: C',
         'Programming Language :: Cython',
         'Programming Language :: Python :: 3',

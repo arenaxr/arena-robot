@@ -3,7 +3,7 @@ ARENA-robot
 Robot integration runtime for the ARENA.
 
 ## Installation
-Requires Python3.6+
+Requires Python3.8+ (it probably runs fine on 3.6 and 3.7, but you will need your own NumPy wheels)
 ```bash
 pip install git+https://github.com/conix-center/ARENA-robot#egg=arena-robot
 ```
@@ -12,8 +12,6 @@ Or for development, clone the repo and from inside the directory:
 ```bash
 pip install -e .
 ```
-
-The `vl53l5cx_py` module requires Linux i2c interface (`linux/i2c.h` and `linux/i2c-dev.h`).
 
 ## Modules
 
@@ -56,6 +54,8 @@ MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideo
 ```
 
 ### vl53l5cx_py
+
+The `vl53l5cx_py` module requires Linux I2C interface (`linux/i2c.h` and `linux/i2c-dev.h`). It will issue a `RuntimeError` on other platforms if it is attempted to initialize. 
 
 C shared library
 ```bash

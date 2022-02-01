@@ -9,6 +9,8 @@ This source code is licensed under the BSD-3-Clause license found in the
 LICENSE file in the root directory of this source tree.
 """
 
+
+#ifdef __linux__
 import atexit
 from libc.stdint cimport int32_t, uint8_t, uint16_t
 import numpy as np
@@ -83,13 +85,26 @@ cdef extern from "../include/vl53l5cx_py.h":
 cdef VL53L5CX_PY_DEFAULT_ADDR = VL53L5CX_DEFAULT_I2C_ADDRESS
 cdef VL53L5CX_PY_DEFAULT_FREQ = 15
 
+#endif
+
 cdef class VL53L5CX:
+    #ifndef __linux__
+    DEFAULT_ADDR = None
+    DEFAULT_FREQ = None
+    #else
     cdef VL53L5CX_Configuration dev_conf
     cdef bint ranging
 
     DEFAULT_ADDR = np.uint16(VL53L5CX_PY_DEFAULT_ADDR)
     DEFAULT_FREQ = np.uint8(VL53L5CX_PY_DEFAULT_FREQ)
+    #endif
 
+    #ifndef __linux__
+    def __cinit__(self, dev_path: str,
+                  target_addr = None,
+                  freq = None) -> None:
+        raise RuntimeError("vl53l5cx_py not available on this platform!")
+    #else
     def __cinit__(self, dev_path: str,
                   target_addr: np.uint16_t = VL53L5CX_PY_DEFAULT_ADDR,
                   freq: np.uint8_t = VL53L5CX_PY_DEFAULT_FREQ) -> None:
@@ -98,30 +113,49 @@ cdef class VL53L5CX:
             raise RuntimeError
         self.ranging = False
         atexit.register(self.__del__)
+    #endif
 
     def __del__(self) -> None:
+        #ifndef __linux__
+        raise RuntimeError("vl53l5cx_py not available on this platform!")
+        #else
         if self.ranging:
             self.stop_ranging()
         cdef int32_t status = vl53l5cx_py_close(&self.dev_conf)
         if status != 0:
             raise RuntimeError
         atexit.unregister(self.__del__)
+        #endif
 
     cpdef void start_ranging(self):
+        #ifndef __linux__
+        raise RuntimeError("vl53l5cx_py not available on this platform!")
+        #else
         cdef int32_t status = vl53l5cx_py_start_ranging(&self.dev_conf)
         if status != 0:
             raise RuntimeError
         self.ranging = True
+        #endif
 
     cpdef void stop_ranging(self):
+        #ifndef __linux__
+        raise RuntimeError("vl53l5cx_py not available on this platform!")
+        #else
         cdef int32_t status = vl53l5cx_py_stop_ranging(&self.dev_conf)
         if status != 0:
             raise RuntimeError
         self.ranging = False
+        #endif
 
     cpdef VL53L5CX_ResultsData get_range(self):
+        #ifndef __linux__
+        raise RuntimeError("vl53l5cx_py not available on this platform!")
+        #else
+
+        #else
         cdef VL53L5CX_ResultsData results
         cdef int32_t status = vl53l5cx_py_get_range(&self.dev_conf, &results)
         if status != 0:
             raise RuntimeError
         return results
+        #endif

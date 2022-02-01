@@ -44,8 +44,8 @@ jobs:
       matrix:
         include:
           - { os: ubuntu-20.04, python-version: 3.9 }
-          # - { os: windows-2019, python-version: 3.9 }
-          # - { os: macos-10.15,  python-version: 3.9 }
+          - { os: windows-2019, python-version: 3.9 }
+          - { os: macos-10.15,  python-version: 3.9 }
     runs-on: ${{ matrix.os }}
     steps:
       - name: Download python-dist artifact
@@ -70,50 +70,49 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp36 }
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp37 }
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp38 }
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp39 }
-          # - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp39 } # no numpy wheel
-          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp37 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp36 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp37 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38 }
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39 }
-          # - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp39 } # no numpy wheel
-          - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp37 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp36 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp37 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38 }
-          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39 }
-          # - { os: ubuntu-20.04, arch: musllinux_aarch64, python-version: cp39 } # no numpy wheel
-          # - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp37 } # no numpy wheel
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp36 }
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp37 }
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38 }
-          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp39 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp36 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp37 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp38 }
-          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp39 }
-          # - { os: windows-2019, arch: win_amd64,         python-version: cp36 }
-          # - { os: windows-2019, arch: win_amd64,         python-version: cp37 }
-          # - { os: windows-2019, arch: win_amd64,         python-version: cp38 }
-          # - { os: windows-2019, arch: win_amd64,         python-version: cp39 }
-          # - { os: windows-2019, arch: win_amd64,         python-version: pp37 }
-          # - { os: windows-2019, arch: win32,             python-version: cp36 }
-          # - { os: windows-2019, arch: win32,             python-version: cp37 }
-          # - { os: windows-2019, arch: win32,             python-version: cp38 }
-          # - { os: windows-2019, arch: win32,             python-version: cp39 }
-          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp36 }
-          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp37 }
-          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38 }
-          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39 }
-          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp37 }
-          # - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38 }
-          # - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39 }
-          # - { os: macos-10.15,  arch: macosx_universal2, python-version: cp38 }
-          # - { os: macos-10.15,  arch: macosx_universal2, python-version: cp39 }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp38  }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp39  }
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: cp310 }
+          # - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp39  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp310 } # no numpy wheel
+          - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp38  }
+          # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp310 } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp39  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp310 } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp38  } # no numpy wheel
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38  }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39  }
+          - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp310 }
+          # - { os: ubuntu-20.04, arch: musllinux_aarch64, python-version: cp39  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: musllinux_aarch64, python-version: cp310 } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp38  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp39  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp310 } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp38  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp39  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp310 } # no numpy wheel
+          - { os: windows-2019, arch: win_amd64,         python-version: cp38  }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp39  }
+          - { os: windows-2019, arch: win_amd64,         python-version: cp310 }
+          # - { os: windows-2019, arch: win_amd64,         python-version: pp38  } # no numpy wheel
+          # - { os: windows-2019, arch: win_arm64,         python-version: cp39  } # no numpy wheel
+          # - { os: windows-2019, arch: win_arm64,         python-version: cp310 } # no numpy wheel
+          - { os: windows-2019, arch: win32,             python-version: cp38  }
+          - { os: windows-2019, arch: win32,             python-version: cp39  }
+          # - { os: windows-2019, arch: win32,             python-version: cp310 } # no numpy wheel
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38  }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39  }
+          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp310 }
+          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp38  } # no numpy wheel
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38  }
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39  }
+          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp310 }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp38  }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp39  }
+          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp310 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -123,7 +122,7 @@ jobs:
         with:
           platforms: all
       - name: Build Wheel
-        uses: pypa/cibuildwheel@v2.2.2
+        uses: pypa/cibuildwheel@v2.3.1
         env:
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: ${{ matrix.python-version }}-${{ matrix.arch }}
