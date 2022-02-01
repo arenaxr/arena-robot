@@ -38,7 +38,7 @@ if platform.startswith('linux'):
     ))
 else:
     extensions.append(Extension("vl53l5cx_py",
-              (["./vl53l5cx_py/cython/vl53l5cx_py_wrapper.pyx"]),
+              (["./vl53l5cx_py/cython/vl53l5cx_py_wrapper_disable.pyx"]),
               include_dirs=[]
     ))
 
