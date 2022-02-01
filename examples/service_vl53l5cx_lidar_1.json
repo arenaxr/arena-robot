@@ -5,6 +5,7 @@
     "interval_ms": 100,
     "dev_path": "/dev/i2c-1",
     "gpio_path": "/dev/gpiochip0",
+    "rst_pin": 17,
     "lpn_pins": [
         22,
         27

@@ -42,7 +42,8 @@ This is a lidar sensor that connects through I2C and addresses by toggling its L
 
  - `dev_path`: Required. Path to the I2C dev file device. For example, the first I2C port on the Raspberry Pi is `/dev/i2c-1`.
  - `gpio_path`: Required. Path to the GPIO dev file device. For example, the first I2C port on the Raspberry Pi is `/dev/gpiochip0`.
- - `lpn_pins`: Required. Array of pins (integers) on `gpio_path` connected to Lpn pins on the sensor. The array must be present, and at least one pin must be specified or the service won't initialized any sensors.
+ - `rst_pin`: Required. Pin (integer) on `gpio_path` connected to the `I2C_RST` pin on all of the sensors.
+ - `lpn_pins`: Required. Array of pins (integers) on `gpio_path` connected to `Lpn` pins on each sensor. The array must be present, and at least one pin must be specified or the service won't initialized any sensors. Sensors will be initialized and addressed in te order if this array.
 
 ### arenavideocall
 

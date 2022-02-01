@@ -25,11 +25,12 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
 
     DEVICE_INSTANCE_SENSOR_TYPE = "vl53l5cx"
 
-    def __init__(self, dev_path: str, gpio_path: str, lpn_pins: Sequence[int],
-                 **kwargs):
+    def __init__(self, dev_path: str, gpio_path: str, rst_pin: int,
+                 lpn_pins: Sequence[int], **kwargs):
         """Initialize the VL53L5CX sensor class."""
         self.dev_path = dev_path
         self.gpio_path = gpio_path
+        self.rst_pin = rst_pin
         self.lpn_pins = lpn_pins
         self.sensors_setup = [None] * len(self.lpn_pins)
         self.sensors = [None] * len(self.lpn_pins)
@@ -44,12 +45,20 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
 
     def setup(self):
         """Set up VL53L5CX sensor."""
+        rst_pin = GPIO(self.gpio_path, self.rst_pin, "out")
+        rst_pin.write(False)
+
         for i, pin_num in enumerate(self.lpn_pins):
             pin = GPIO(self.gpio_path, pin_num, "out")
             pin.write(False)
             addr = VL53L5CX.DEFAULT_ADDR + np.uint16(2 * i)
             self.sensors_setup[i] = ((i, pin, addr,))
             print(f'Will setup sensor {i}, addr {addr:02x} on pin {pin_num}')
+
+        rst_pin.write(True)
+        time.sleep(1)
+        rst_pin.write(False)
+        time.sleep(1)
 
         for sensor_setup in self.sensors_setup:
             i, pin, addr = sensor_setup
