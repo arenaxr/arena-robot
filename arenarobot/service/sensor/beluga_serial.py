@@ -64,7 +64,7 @@ class ArenaRobotServiceSensorBelugaSerial(ArenaRobotServiceSensor):
         def msg_in_clear():
             # Wait and clear all of the messages that come in
             # Python seems bad at clearing the buffers the first time
-            for i in range(2):
+            for _ in range(2):
                 while self.aioserial_instance.in_waiting > 0:
                     self.aioserial_instance.reset_input_buffer()
                 time.sleep(1)
