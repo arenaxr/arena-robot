@@ -137,7 +137,8 @@ jobs:
       - uses: actions/upload-artifact@v2
         # Some QEMU+Cython float precision issue, so do not upload/bundle artifact for now
         # Just want to be sure builds and runs without error
-        if: matrix.arch != 'manylinux_i686' && matrix.arch != 'manylinux_aarch64'
+        # UPDATE: Use them for now; want to support new Pi aarch64 OS
+        # if: matrix.arch != 'manylinux_i686' && matrix.arch != 'manylinux_aarch64'
         with:
           name: python-dist
           path: ./wheelhouse/*.whl
