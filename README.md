@@ -4,6 +4,13 @@ Robot integration runtime for the ARENA.
 
 ## Installation
 Requires Python3.8+ (it probably runs fine on 3.6 and 3.7, but you will need your own NumPy wheels)
+
+From [PyPi](https://pypi.org/project/arena-robot/):
+```bash
+pip install arena-robot
+```
+
+Latest development:
 ```bash
 pip install git+https://github.com/conix-center/ARENA-robot#egg=arena-robot
 ```
