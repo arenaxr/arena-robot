@@ -10,11 +10,10 @@ This source code is licensed under the BSD-3-Clause license found in the
 LICENSE file in the root directory of this source tree.
 """
 
-# import serial
 import time
 from typing import Optional
 
-import aioserial
+from aioserial import AioSerial
 
 from arenarobot.service.sensor import ArenaRobotServiceSensor
 
@@ -52,14 +51,13 @@ class ArenaRobotServiceSensorBelugaSerial(ArenaRobotServiceSensor):
         super().__init__(
             device_instance_sensor_type=sensor_type,
             device_instance_prefix="beluga_serial_",
-            async_service=True,
-            **kwargs
+            async_service=True, **kwargs
         )
 
     async def async_setup(self):
         """Set up Beluga serial sensor."""
-        self.aioserial_instance = aioserial.AioSerial(port=self.dev_path,
-                                                      baudrate=self.baudrate)
+        self.aioserial_instance = AioSerial(port=self.dev_path,
+                                            baudrate=self.baudrate)
 
         def msg_in_clear():
             # Wait and clear all of the messages that come in

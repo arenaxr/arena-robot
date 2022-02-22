@@ -12,6 +12,7 @@ LICENSE file in the root directory of this source tree.
 
 from .sensor import ArenaRobotServiceSensor
 from .sensor.beluga_serial import ArenaRobotServiceSensorBelugaSerial
+from .sensor.licosa_serial import ArenaRobotServiceSensorLiCosaSerial
 from .sensor.vl53l5cx import ArenaRobotServiceSensorVL53L5CX
 from .service import ArenaRobotService
 
@@ -19,5 +20,6 @@ SERVICE_TYPE_MAP = {
     "unknown": ArenaRobotService,
     "sensor": ArenaRobotServiceSensor,
     "sensor_beluga_serial": ArenaRobotServiceSensorBelugaSerial,
+    "sensor_licosa_serial": ArenaRobotServiceSensorLiCosaSerial,
     "sensor_vl53l5cx": ArenaRobotServiceSensorVL53L5CX
 }

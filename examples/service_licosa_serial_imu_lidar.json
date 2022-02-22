@@ -1,0 +1,6 @@
+{
+    "service_type": "sensor_licosa_serial",
+    "instance_name": "imu_lidar_1",
+    "subtopic": "imu_lidar",
+    "dev_path": ""
+}

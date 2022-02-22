@@ -42,7 +42,13 @@ This is a [Beluga](https://github.com/WiseLabCMU/Beluga) UWB sensor connected vi
  - `beluga_tx_power`: Optional. Defaults to unset. See Beluga documentation.
  - `beluga_timeout`: Optional. Defaults to unset. See Beluga documentation.
  - `beluga_twr_mode`: Optional. Defaults to unset. See Beluga documentation.
- - `beluga_led_mode`: Optional. Defaults to unset. See Beluga documentation.
+ - `beluga_led_mode`: Optional. Defaults to unset. See Beluga 
+
+#### sensor_licosa_serial
+This is a LiCosa IMU and lidar sensor connected via serial:
+
+ - `dev_path`: Required. Path to the serial dev file device. For example, a LiCosa USB serial device commonly shows up on Linux as `/dev/ttyACM[0-9]+`. Hardware serial ports are often `/dev/ttyS[0-9]+`. For USB devices, it is best practice to use the full serial device symlink like `/dev/serial/by-id/usb-` so that the connection order does not affect the device assignment. If multiple USB devices of the same type are connected, then the `/dev/serial/by-path/.*` syminks should be used to select the serial device by USB port.
+ - `baudrate`: Optional. Defaults to 115200.
 
 #### sensor_vl53l5cx
 This is a lidar sensor that connects through I2C and addresses by toggling its LPn pins. It additionally supports the following arguments:
@@ -60,6 +66,10 @@ The first argument sets the surface that the video should be mapped to. For exam
 ```bash
 MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideobox
 ```
+
+### licosa_py
+
+The `licosa_py` module depends only on NumPy. It includes a packet parser but not the serial interface; you will need to provide this yourself. See [`examples/licosa_py.py`](./examples/licosa_py.py) for an example.
 
 ### vl53l5cx_py
 
