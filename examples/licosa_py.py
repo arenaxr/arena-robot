@@ -34,7 +34,7 @@ async def main():
     while True:
         msg_byte = await aioserial_instance.read_async(size=1)
 
-        pkt_out = pkt.next_byte(msg_byte)
+        pkt_out = await pkt.next_byte(msg_byte)
         if pkt_out is not False:
             data = asdict(pkt_out)
             print(data)

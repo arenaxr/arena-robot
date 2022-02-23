@@ -77,12 +77,12 @@ class LiCosaIMUPacket(LiCosaPacket):
 class LiCosaIMUFullPacket(LiCosaIMUPacket):
     """Full IMU LiCosa packet."""
     TYPE: ClassVar[int] = LiCosaPacketType.LICOSA_PKT_TYPE_IMU_FULL
-    sys_calib: np.unint8
-    gyro_calib: np.unint8
-    accel_calib: np.unint8
-    mag_calib: np.unint8
-    sys_status: np.unint8
-    sys_error: np.unint8
+    sys_calib: np.uint8
+    gyro_calib: np.uint8
+    accel_calib: np.uint8
+    mag_calib: np.uint8
+    sys_status: np.uint8
+    sys_error: np.uint8
 
 
 @dataclass
@@ -149,11 +149,11 @@ class LiCosaPacketParser():
             roll=np.float64(roll),
             pitch=np.float64(pitch),
             sys_calib=np.float64(sys_calib),
-            gyro_calib=np.unint8(gyro_calib),
-            accel_calib=np.unint8(accel_calib),
-            mag_calib=np.unint8(mag_calib),
-            sys_status=np.unint8(sys_status),
-            sys_error=np.unint8(sys_error)
+            gyro_calib=np.uint8(gyro_calib),
+            accel_calib=np.uint8(accel_calib),
+            mag_calib=np.uint8(mag_calib),
+            sys_status=np.uint8(sys_status),
+            sys_error=np.uint8(sys_error)
         )
 
     @staticmethod
