@@ -163,5 +163,6 @@ class ArenaRobotServiceSensorBelugaSerial(ArenaRobotServiceSensor):
                     "counter": int(rx_timestamp)
                 }]
             }
-            print(data)
+            if __debug__:
+                print(data)
             self.publish({"data": data})

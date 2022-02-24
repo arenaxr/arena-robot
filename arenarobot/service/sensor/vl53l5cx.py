@@ -74,6 +74,8 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
             time.sleep(1)
             self.sensors[i].start_ranging()
 
+        super().setup()
+
     def fetch(self):
         """Fetch VL53L5CX data."""
         data = []
@@ -84,5 +86,6 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
             del ranges["reflectance"]
             del ranges["target_status"]
             data.append(ranges)
-        print(data)
+        if __debug__:
+            print(data)
         self.publish({"data": data})

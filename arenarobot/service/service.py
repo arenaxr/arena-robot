@@ -32,7 +32,7 @@ class ArenaRobotService():
     def __init__(self, instance_name: str, subtopic: str,
                  device_instance_type="unknown",
                  device_instance_prefix="",
-                 async_service=False, interval_ms=0):
+                 async_service=False, interval_ms=-1):
         """Initialize the service class."""
         self.device_instance_type = device_instance_type
         instance_name = f"service_{device_instance_prefix}{instance_name}"
@@ -93,8 +93,8 @@ class ArenaRobotService():
         self.publish({"status": "starting"})
         if self.async_service:
             self.device.run_async(self.async_fetch)
-        elif self.interval_ms > 0:
-            self.device.run_forever(self.fetch, interval_ms=self.interval_ms)
-        else:
+        elif self.interval_ms < 0:
             self.device.run_once(self.fetch)
+        else:
+            self.device.run_forever(self.fetch, interval_ms=self.interval_ms)
         self.device.run_tasks()

@@ -29,7 +29,7 @@ Services that stream to MQTT may be started with the `arena-robot-service` comma
  - `service_type`: Required. Currently only `sensor_vl53l5cx` is supported.
  - `instance_name`: Required. The name of this running service.
  - `subtopic`: Required. The device subtopic to publish to. For sensors this will always be prefixed with `sensors/`.
- - `interval_ms` For services that run repeatedly, this is the interval. Set to 0 by default, which will fire the service once. This option is ignored for async-based services.
+ - `interval_ms` For services that run repeatedly, this is the interval. Set to -1 by default, which will fire the service once. Set to 0 to fire as fast as possible. This option is ignored for async-based services.
 
 #### sensor_beluga_serial
 This is a [Beluga](https://github.com/WiseLabCMU/Beluga) UWB sensor connected via serial:

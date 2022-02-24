@@ -15,7 +15,7 @@ import argparse
 import asyncio
 from dataclasses import asdict
 
-# from  aioserial import AioSerial
+# from aioserial import AioSerial
 from serial import Serial
 
 from licosa_py import LiCosaPacketParser
@@ -37,7 +37,7 @@ async def main():
         # msg_byte = await aioserial_instance.read_async(size=1)
         msg_byte = serial_instance.read(size=1)
 
-        pkt_out = await pkt.next_byte(msg_byte)
+        pkt_out = pkt.next_byte(msg_byte)
         if pkt_out is not False:
             data = asdict(pkt_out)
             print(data)

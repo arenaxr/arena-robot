@@ -14,7 +14,6 @@ import time
 from dataclasses import asdict
 from json import dumps, loads
 
-# from aioserial import AioSerial
 from serial import Serial
 
 from arenarobot.service.sensor import ArenaRobotServiceSensor
@@ -34,37 +33,34 @@ class ArenaRobotServiceSensorLiCosaSerial(ArenaRobotServiceSensor):
         self.dev_path = dev_path
         self.baudrate = baudrate
 
-        # self.aioserial_instance = None
         self.serial_instance = None
+        self.pkt = None
 
         sensor_type = (ArenaRobotServiceSensorLiCosaSerial
                        .DEVICE_INSTANCE_SENSOR_TYPE)
         super().__init__(
             device_instance_sensor_type=sensor_type,
             device_instance_prefix="licosa_serial_",
-            async_service=True, **kwargs
+            **kwargs
         )
 
-    async def async_setup(self):
+    def setup(self):
         """Set up LiCosa serial sensor."""
-        # self.aioserial_instance = AioSerial(port=self.dev_path,
-        #                                     baudrate=self.baudrate)
         self.serial_instance = Serial(port=self.dev_path,
                                       baudrate=self.baudrate)
+        self.pkt = LiCosaPacketParser()
         time.sleep(1)
-        await super().async_setup()
+        super().setup()
 
-    async def async_fetch(self):
+    def fetch(self):
         """Fetch LiCosa serial data."""
-        pkt = LiCosaPacketParser()
-        while True:
-            # msg_byte = await self.aioserial_instance.read_async(size=1)
-            msg_byte = self.serial_instance.read(size=1)
+        msg_byte = self.serial_instance.read(size=1)
 
-            pkt_out = pkt.next_byte(msg_byte)
-            if pkt_out is not False:
-                data = asdict(pkt_out)
-                del data['data_buf']
-                data = loads(dumps(data, cls=LiCosaJSONEncoder))
+        pkt_out = self.pkt.next_byte(msg_byte)
+        if pkt_out is not False:
+            data = asdict(pkt_out)
+            del data['data_buf']
+            data = loads(dumps(data, cls=LiCosaJSONEncoder))
+            if __debug__:
                 print(data)
-                self.publish({"data": data})
+            self.publish({"data": data})
