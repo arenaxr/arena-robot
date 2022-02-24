@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-licosa_py.py: Get data from a LiCosa serial device.
+licosa_py_basic.py: Get data from a LiCosa serial device.
 
 Created by Perry Naseck on 2/22/22.
 
@@ -15,7 +15,8 @@ import argparse
 import asyncio
 from dataclasses import asdict
 
-from  aioserial import AioSerial
+# from  aioserial import AioSerial
+from serial import Serial
 
 from licosa_py import LiCosaPacketParser
 
@@ -28,11 +29,13 @@ async def main():
                         help='serial device baudrate')
     args = parser.parse_args()
 
-    aioserial_instance = AioSerial(port=args.dev_path, baudrate=args.baudrate)
+    # aioserial_instance = AioSerial(port=args.dev_path, baudrate=args.baudrate)
+    serial_instance = Serial(port=args.dev_path, baudrate=args.baudrate)
     pkt = LiCosaPacketParser()
 
     while True:
-        msg_byte = await aioserial_instance.read_async(size=1)
+        # msg_byte = await aioserial_instance.read_async(size=1)
+        msg_byte = serial_instance.read(size=1)
 
         pkt_out = pkt.next_byte(msg_byte)
         if pkt_out is not False:
@@ -40,5 +43,5 @@ async def main():
             print(data)
 
 if __name__=="__main__":
-   res = asyncio.run(main())
-   exit(res)
+    res = asyncio.run(main())
+    exit(res)

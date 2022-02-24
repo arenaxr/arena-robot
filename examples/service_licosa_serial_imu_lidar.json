@@ -2,5 +2,5 @@
     "service_type": "sensor_licosa_serial",
     "instance_name": "imu_lidar_1",
     "subtopic": "imu_lidar",
-    "dev_path": ""
+    "dev_path": "/dev/serial/by-id/usb-Raspberry_Pi_Pico_E4616C840F602C27-if00"
 }

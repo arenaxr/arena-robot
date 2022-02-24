@@ -12,11 +12,13 @@ LICENSE file in the root directory of this source tree.
 
 import time
 from dataclasses import asdict
+from json import dumps, loads
 
-from aioserial import AioSerial
+# from aioserial import AioSerial
+from serial import Serial
 
 from arenarobot.service.sensor import ArenaRobotServiceSensor
-from licosa_py import LiCosaPacketParser
+from licosa_py import LiCosaPacketParser, LiCosaJSONEncoder
 
 
 # pylint: disable=too-many-instance-attributes
@@ -32,7 +34,8 @@ class ArenaRobotServiceSensorLiCosaSerial(ArenaRobotServiceSensor):
         self.dev_path = dev_path
         self.baudrate = baudrate
 
-        self.aioserial_instance = None
+        # self.aioserial_instance = None
+        self.serial_instance = None
 
         sensor_type = (ArenaRobotServiceSensorLiCosaSerial
                        .DEVICE_INSTANCE_SENSOR_TYPE)
@@ -44,8 +47,10 @@ class ArenaRobotServiceSensorLiCosaSerial(ArenaRobotServiceSensor):
 
     async def async_setup(self):
         """Set up LiCosa serial sensor."""
-        self.aioserial_instance = AioSerial(port=self.dev_path,
-                                            baudrate=self.baudrate)
+        # self.aioserial_instance = AioSerial(port=self.dev_path,
+        #                                     baudrate=self.baudrate)
+        self.serial_instance = Serial(port=self.dev_path,
+                                      baudrate=self.baudrate)
         time.sleep(1)
         await super().async_setup()
 
@@ -53,10 +58,13 @@ class ArenaRobotServiceSensorLiCosaSerial(ArenaRobotServiceSensor):
         """Fetch LiCosa serial data."""
         pkt = LiCosaPacketParser()
         while True:
-            msg_byte = await self.aioserial_instance.read_async(size=1)
+            # msg_byte = await self.aioserial_instance.read_async(size=1)
+            msg_byte = self.serial_instance.read(size=1)
 
             pkt_out = pkt.next_byte(msg_byte)
             if pkt_out is not False:
                 data = asdict(pkt_out)
+                del data['data_buf']
+                data = loads(dumps(data, cls=LiCosaJSONEncoder))
                 print(data)
                 self.publish({"data": data})
