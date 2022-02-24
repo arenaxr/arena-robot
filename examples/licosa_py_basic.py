@@ -25,7 +25,7 @@ async def main():
         description='Get data from a LiCosa serial device.')
     parser.add_argument('dev_path', metavar='/dev/*', type=str,
                         help='serial device path')
-    parser.add_argument('baudrate', nargs='?', type=int, default=115200,
+    parser.add_argument('baudrate', nargs='?', type=int, default=230400,
                         help='serial device baudrate')
     args = parser.parse_args()
 

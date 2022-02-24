@@ -29,7 +29,7 @@ class ArenaRobotServiceSensorLiCosaSerial(ArenaRobotServiceSensor):
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-statements
-    def __init__(self, dev_path: str, baudrate: int = 115200, **kwargs):
+    def __init__(self, dev_path: str, baudrate: int = 230400, **kwargs):
         """Initialize the LiCosa serial sensor class."""
         self.dev_path = dev_path
         self.baudrate = baudrate
