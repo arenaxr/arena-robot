@@ -69,7 +69,7 @@ MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideo
 
 ### licosa_py
 
-The `licosa_py` module depends only on NumPy. It includes a packet parser but not the serial interface; you will need to provide this yourself. See [`examples/licosa_py.py`](./examples/licosa_py.py) for an example.
+The `licosa_py` module depends only on NumPy. It includes a packet parser but not the serial interface; you will need to provide this yourself. See [`examples/licosa_py_basic.py`](./examples/licosa_py_basic.py) for an example.
 
 ### vl53l5cx_py
 

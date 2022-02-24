@@ -18,7 +18,7 @@ from json import dumps, loads
 from serial import Serial
 
 from arenarobot.service.sensor import ArenaRobotServiceSensor
-from licosa_py import LiCosaPacketParser, LiCosaJSONEncoder
+from licosa_py import LiCosaJSONEncoder, LiCosaPacketParser
 
 
 # pylint: disable=too-many-instance-attributes
