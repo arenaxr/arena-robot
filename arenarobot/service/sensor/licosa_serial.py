@@ -61,6 +61,24 @@ class ArenaRobotServiceSensorLiCosaSerial(ArenaRobotServiceSensor):
             data = asdict(pkt_out)
             del data['data_buf']
             data = loads(dumps(data, cls=LiCosaJSONEncoder))
-            if __debug__:
-                print(data)
-            self.publish({"data": data})
+
+            # print(data['ts'])
+            payload = {"msg":{"data":data}}
+            if payload["msg"]["data"]["pkt_type"] == "LICOSA_PKT_TYPE_LIDAR":
+              print("------------------------")
+              # for i in range(len(payload["msg"]["data"]["sensors"])):
+              i = 0
+              sensor = payload["msg"]["data"]["sensors"][i]
+              ranges = sensor["ranges"]
+              statuses = sensor["statuses"]
+              s = 0
+              c = 0
+              for j in range(len(ranges)):
+                if statuses[j] == 5:
+                  s += ranges[j]
+                  c += 1
+
+              if (c > 0):
+                print(i, c, s/c) 
+
+            # self.publish({"data": data})

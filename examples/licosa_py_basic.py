@@ -40,7 +40,6 @@ async def main():
         pkt_out = pkt.next_byte(msg_byte)
         if pkt_out is not False:
             data = asdict(pkt_out)
-            print(data)
 
 if __name__=="__main__":
     res = asyncio.run(main())

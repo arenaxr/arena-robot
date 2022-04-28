@@ -31,7 +31,6 @@ import argparse
 import threading
 import signal
 import serial
-from arena.device import Device
 
 from time import sleep
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -149,144 +148,6 @@ realsense_resetting = False
 pfStatus = 0
 alt_offset = 0
 
-#######################################
-#Lidar Variables
-#######################################
-
-VL53L5_Zone_Pitch8x8 = [
-		59.00,64.00,67.50,70.00,70.00,67.50,64.00,59.00,
-		64.00,70.00,72.90,74.90,74.90,72.90,70.00,64.00,
-		67.50,72.90,77.40,80.50,80.50,77.40,72.90,67.50,
-		70.00,74.90,80.50,85.75,85.75,80.50,74.90,70.00,
-		70.00,74.90,80.50,85.75,85.75,80.50,74.90,70.00,
-		67.50,72.90,77.40,80.50,80.50,77.40,72.90,67.50,
-		64.00,70.00,72.90,74.90,74.90,72.90,70.00,64.00,
-		59.00,64.00,67.50,70.00,70.00,67.50,64.00,59.00
-]
- 
-VL53L5_Zone_Yaw8x8 = [
-		135.00,125.40,113.20, 98.13, 81.87, 66.80, 54.60, 45.00,
-		144.60,135.00,120.96,101.31, 78.69, 59.04, 45.00, 35.40,
-		156.80,149.04,135.00,108.45, 71.55, 45.00, 30.96, 23.20,
-		171.87,168.69,161.55,135.00, 45.00, 18.45, 11.31,  8.13,
-		188.13,191.31,198.45,225.00,315.00,341.55,348.69,351.87,
-		203.20,210.96,225.00,251.55,288.45,315.00,329.04,336.80,
-		215.40,225.00,239.04,258.69,281.31,300.96,315.00,324.60,
-		225.00,234.60,246.80,261.87,278.13,293.20,305.40,315.00]
-
-#Compute Sin and Cos
-SinOfPitch = [m.sin(m.radians(i)) for i in VL53L5_Zone_Pitch8x8]
-CosOfPitch = [m.cos(m.radians(i)) for i in VL53L5_Zone_Pitch8x8]
-SinOfYaw = [m.sin(m.radians(i)) for i in VL53L5_Zone_Yaw8x8]
-CosOfYaw = [m.cos(m.radians(i)) for i in VL53L5_Zone_Yaw8x8]
-
-
-#######################################
-#Lidar Helper Functions
-#######################################
-
-#Convert VL53L5CX distances to local xyz
-#Optional transform parameter 
-
-def convertDistToXYZ(ranges, statuses, transform=None):
-	
-	xyzArr = np.empty((0,3))
-
-	for zoneNum in range(0,64):
-		
-		coorNew = np.empty((0,3))
-		
-		if statuses[zoneNum] != 255 and ranges[zoneNum] > 0:
-
-
-			Hyp = ranges[zoneNum]/SinOfPitch[zoneNum]
-			x = CosOfYaw[zoneNum]*CosOfPitch[zoneNum]*Hyp
-			y = SinOfYaw[zoneNum]*CosOfPitch[zoneNum]*Hyp
-			z = ranges[zoneNum]
-
-			coor = np.array([x,y,z]) #get coordinates as a row matrix in numpy
-
-			if transform is not None:
-				coor = np.append(coor,1)
-				#coor = np.transpose(coor) #for multiplication
-				coorNew = np.dot(transform, coor) #mutltiply transform by coor
-
-				coorNew = np.transpose(coorNew)[:-1] #leave off 1 
-			else:
-				coorNew = np.transpose(coor)
-
-		else:
-			coorNew = np.array([0,0,0])
-
-		xyzArr = np.append(xyzArr, [coorNew], axis=0)
-
-	return xyzArr
-		
-
-
-
-#Convert yaw, pitch and roll into rotation and xyz offsets into a 4x4 transform
-def yprOffsetToTrans(yaw, pitch, roll, xOff, yOff, zOff):
-
-	yaw *= m.pi/180
-	pitch *= m.pi/180
-	roll *= m.pi/180
-	su = m.sin(roll)
-	cu = m.cos(roll)
-	sv = m.sin(pitch)
-	cv = m.cos(pitch)
-	sw = m.sin(yaw)
-	cw = m.cos(yaw)
-	#print(su,cu,sv,cv,sw,cw)
-	trans = np.array([[0,0,0,0],
-	 				  [0,0,0,0],
-					  [0,0,0,0],
-					  [0,0,0,1]]).astype(float)
-
-	#Rotation
-	trans[0][0] = 1
-	trans[0][0] = cv*cw
-	trans[0][1] = su*sv*cw - cu*sw
-	trans[0][2] = su*sw + cu*sv*cw
-	trans[1][0] = cv*sw
-	trans[1][1] = cu*cw + su*sv*sw
-	trans[1][2] = cu*sv*sw - su*cw
-	trans[2][0] = -sv
-	trans[2][1] = su*cv
-	trans[2][2] = cu*cv  
-
-	#Translation
-	trans[0][3] = xOff
-	trans[1][3] = yOff
-	trans[2][3] = zOff
-
-
-	return trans
-#######################################
-#Lidar Transforms
-#######################################
-
-
-#                       yaw, pitch, roll , x,y,z offsets to transforms
-t_back = yprOffsetToTrans(90,0,70,      0,0,0)
-t_left = yprOffsetToTrans(0,0,70,       0,0,0)
-t_down = yprOffsetToTrans(0,0,0,        0,0,0)
-t_forward = yprOffsetToTrans(-90,0,70,  0,0,0)
-t_right = yprOffsetToTrans(180,0,70,    0,0,0)
-
-flip = np.array([
-                [1,0,0,0],
-                [0,1,0,0],
-                [0,0,-1,0],
-                [0,0,0,1]])
-
-transforms = [t_back, t_left, t_forward, t_down, t_right]
-
-flip_transforms = [np.dot(i, flip) for i in transforms]
-
-
-
-
 # Increment everytime pose_jumping or relocalization happens
 # See here: https://github.com/IntelRealSense/librealsense/blob/master/doc/t265.md#are-there-any-t265-specific-options
 # For AP, a non-zero "reset_counter" would mean that we could be sure that the user's setup was using mavlink2
@@ -386,32 +247,6 @@ if enable_arena:
     scene = Scene(host="arenaxr.org", scene="ARENA-Drone", realm="realm", namespace="astrasse")
     arena_drone = Box(object_id="arena_drone", depth=0.4, width=0.4, height=0.07, position=Position(0, 0, 0), scale=Scale(1, 1, 1), color=(128, 0, 172), material={"opacity":0.5})
     scene.add_object(arena_drone)
-
-device = Device(host="arenaxr.org", device="drone03", debug=False)
-CUSTOM_TOPIC = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/imu_lidar"
-
-def drone_sensor_message(client, userdata, msg):
-    print(len(msg.payload))
-    payload_str = msg.payload.decode("utf-8", "ignore").replace("\\", "")[1:-1]
-    payload = json.loads(payload_str)
-    if payload["msg"]["data"]["pkt_type"] == "LICOSA_PKT_TYPE_LIDAR":
-        print("------------------------")
-        # for i in range(len(payload["msg"]["data"]["sensors"])):
-        i = 0
-        sensor = payload["msg"]["data"]["sensors"][i]
-        ranges = sensor["ranges"]
-        statuses = sensor["statuses"]
-        s = 0
-        c = 0
-        for j in range(len(ranges)):
-          if statuses[j] == 5:
-            s += ranges[j]
-            c += 1
-
-        if (c > 0):
-          print(i, c, s/c) 
-
-device.message_callback_add(CUSTOM_TOPIC, drone_sensor_message)
 
 def update_arena_pos():
     global arena_drone, arena_attitude, arena_batt, pfStatus
@@ -758,9 +593,7 @@ def global_msg_callback(value):
     arduGlobalFile.write(str(time.time()) + "," + str(value.lat / METER_TO_LATLNG) + "," + str(value.lon / METER_TO_LATLNG) + "," + str(-value.alt / 1000) + "\n")
     # with pf_lock:
     #     pf.depositVio(np.float64(time.time()), np.float32(value.lat / METER_TO_LATLNG), np.float32(-value.lon / METER_TO_LATLNG), np.float32(value.alt / 1000), 0)
-    
-    # print(f"GLOBAL: {str(value.lat / METER_TO_LATLNG)}, {str(value.lon / METER_TO_LATLNG)}, {str(-value.alt / 1000)}")
-    
+    print(f"GLOBAL: {str(value.lat / METER_TO_LATLNG)}, {str(value.lon / METER_TO_LATLNG)}, {str(-value.alt / 1000)}")
     #vx, vy, vz, hdg
 
 def local_msg_callback(value):
@@ -1099,51 +932,56 @@ def wait_drone_ready():
     return wait_for(drone_is_ready, 1)
 
 def fly_box():
-    print("Start")
-    while not main_loop_should_quit:
-        set_target(0, 0, -2, 0, timeout=3)
-        time.sleep(1)
-        if main_loop_should_quit:
-            return
+    set_target(0, 0, -2, 0, timeout=3.5)
+    time.sleep(1)
+    if main_loop_should_quit:
+        return
 
-        set_target(2, 0, -2, 0, timeout=3)
-        time.sleep(1)
-        if main_loop_should_quit:
-            return
+    set_target(2, 0, -2, 0, timeout=3.5)
+    time.sleep(1)
+    if main_loop_should_quit:
+        return
 
-        set_target(2, -2, -2, 0, timeout=3)
-        time.sleep(1)
-        if main_loop_should_quit:
-            return
+    set_target(2, -2, -2, 0, timeout=3.5)
+    time.sleep(1)
+    if main_loop_should_quit:
+        return
 
-        set_target(0, -2, -2, 0, timeout=3)
-        time.sleep(1)
-        if main_loop_should_quit:
-            return
+    set_target(0, -2, -2, 0, timeout=3.5)
+    time.sleep(1)
+    if main_loop_should_quit:
+        return
+
+def fly():
+    fly_box()
+    fly_box()
+    fly_box()
+    set_target(0, 0, -2, 0, timeout=3.5)
+    time.sleep(1)
+    land()
 
 #Main blocking portion
-# wait_drone_ready()
-# print("START")
-# time.sleep(1)
+wait_drone_ready()
+print("START")
+time.sleep(1)
 
-# set_mode("GUIDED")
-# set_drone_speed(0, 32)
-# set_drone_speed(1, 32)
-# set_drone_speed(2, 32)
-# set_drone_speed(3, 32)
-# time.sleep(1)
-# print("TAKEOFF")
-# takeoff(2)
+set_mode("GUIDED")
+set_drone_speed(0, 32)
+set_drone_speed(1, 32)
+set_drone_speed(2, 32)
+set_drone_speed(3, 32)
+time.sleep(1)
+print("TAKEOFF")
+takeoff(2)
 
-# box_thread = threading.Thread(target=fly_box)
-# box_thread.start()
+box_thread = threading.Thread(target=fly)
+box_thread.start()
 
 if enable_arena:
     scene.run_tasks()
 else:
-    device.run_tasks()
-    # while not main_loop_should_quit:
-    #     time.sleep(0.5)
+    while not main_loop_should_quit:
+        time.sleep(0.5)
 
 main_loop_should_quit = True
 threads_should_exit = True

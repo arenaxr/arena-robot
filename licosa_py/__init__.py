@@ -278,7 +278,7 @@ class LiCosaJSONEncoder(JSONEncoder):
 
     def default(self, obj):
         """JSON Encoder helper function for LiCosa packets."""
-        if isinstance(obj, (np.int_, np.uint8, np.uint16, np.uint64)):
+        if isinstance(obj, (np.int_, np.intc, np.uint8, np.uint16, np.uint64)):
             return int(obj)
 
         elif isinstance(obj, (np.float_, np.float64)):
