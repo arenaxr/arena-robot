@@ -17,4 +17,4 @@ cdef class VL53L5CX:
     def __cinit__(self, dev_path: str,
                   target_addr = None,
                   freq = None) -> None:
-        raise RuntimeError("vl53l5cx_py not available on this platform!")
+        raise RuntimeError("vl53l5cx_py.driver not available on this platform!")

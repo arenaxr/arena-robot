@@ -15,6 +15,8 @@ from libc.stdint cimport int32_t, uint8_t, uint16_t
 import numpy as np
 cimport numpy as np
 
+from vl53l5cx_py.helpers import VL53L5CXSensorData
+
 cdef extern from "../VL53L5CX_Linux_driver_1.1.2/user/uld-driver/inc/vl53l5cx_api.h":
     enum: VL53L5CX_DEFAULT_I2C_ADDRESS
     enum: VL53L5CX_RESOLUTION_8X8
@@ -121,9 +123,12 @@ cdef class VL53L5CX:
             raise RuntimeError
         self.ranging = False
 
-    cpdef VL53L5CX_ResultsData get_range(self):
+    cpdef get_range(self):
         cdef VL53L5CX_ResultsData results
         cdef int32_t status = vl53l5cx_py_get_range(&self.dev_conf, &results)
         if status != 0:
             raise RuntimeError
-        return results
+        return VL53L5CXSensorData(
+            distance_mm=results.distance_mm,
+            target_status=results.target_status
+        )

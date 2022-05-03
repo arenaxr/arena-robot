@@ -16,7 +16,7 @@ import numpy as np
 import time
 
 from periphery import GPIO
-from vl53l5cx_py import VL53L5CX
+from vl53l5cx_py.driver import VL53L5CX
 
 def main():
     parser = argparse.ArgumentParser(

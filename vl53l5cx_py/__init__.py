@@ -1,7 +1,7 @@
 """
-__init__.py: Definitions for LiCosa.
+__init__.py: Definitions for VL53L5CX drivers and helpers.
 
-Created by Perry Naseck on 2/22/22.
+Created by Perry Naseck on 2/24/22.
 
 Copyright (c) 2022, The CONIX Research Center
 All rights reserved.

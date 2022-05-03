@@ -13,7 +13,7 @@ LICENSE file in the root directory of this source tree.
 
 import argparse
 
-from vl53l5cx_py import VL53L5CX
+from vl53l5cx_py.driver import VL53L5CX
 
 def main():
     parser = argparse.ArgumentParser(

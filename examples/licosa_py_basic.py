@@ -18,7 +18,7 @@ from dataclasses import asdict
 # from aioserial import AioSerial
 from serial import Serial
 
-from licosa_py import LiCosaPacketParser
+from licosa_py.parser import LiCosaPacketParser
 
 async def main():
     parser = argparse.ArgumentParser(

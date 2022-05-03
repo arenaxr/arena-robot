@@ -26,7 +26,7 @@ extensions = []
 
 # vl53l5cx_py only available on Linux
 if platform.startswith('linux'):
-    extensions.append(Extension("vl53l5cx_py",
+    extensions.append(Extension("vl53l5cx_py.driver",
               (["./vl53l5cx_py/cython/vl53l5cx_py_wrapper.pyx"] +
                glob("./vl53l5cx_py/src/*.c") +
                glob("./vl53l5cx_py/VL53L5CX_Linux_driver_1.1.2/user/uld-driver/src/*.c") +
@@ -37,7 +37,7 @@ if platform.startswith('linux'):
                             numpy.get_include()]
     ))
 else:
-    extensions.append(Extension("vl53l5cx_py",
+    extensions.append(Extension("vl53l5cx_py.driver",
               (["./vl53l5cx_py/cython/vl53l5cx_py_wrapper_disable.pyx"]),
               include_dirs=[]
     ))
@@ -52,7 +52,7 @@ setup(
     author_email="info@conix.io",
     python_requires='>=3.8, <4',
     packages=find_packages(),
-    ext_modules=cythonize(extensions),
+    ext_modules=cythonize(extensions, language_level="3"),
     zip_safe=False,
     platforms=["any"],
     url="https://github.com/conix-center/ARENA-robot",

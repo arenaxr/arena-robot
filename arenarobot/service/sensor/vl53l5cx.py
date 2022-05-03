@@ -17,7 +17,7 @@ import numpy as np
 from periphery import GPIO
 
 from arenarobot.service.sensor import ArenaRobotServiceSensor
-from vl53l5cx_py import VL53L5CX
+from vl53l5cx_py.driver import VL53L5CX
 
 
 class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
@@ -86,6 +86,4 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
             del ranges["reflectance"]
             del ranges["target_status"]
             data.append(ranges)
-        if __debug__:
-            print(data)
         self.publish({"data": data})
