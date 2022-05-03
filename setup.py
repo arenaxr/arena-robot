@@ -87,8 +87,8 @@ setup(
         'aioserial>=1,<2',
         'arena-py>=0.1.43,<1',
         'numpy>=1,<2',
-        'pyserial>=3,<4'
-        'python-periphery>=2,<3'
+        'pyserial>=3,<4',
+        'python-periphery>=2,<3',
         'selenium>=3,<4',
         'setuptools_scm>=6.0',
         'slam3d>=0,<1'
