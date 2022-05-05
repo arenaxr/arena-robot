@@ -1,0 +1,12 @@
+{
+    "service_type": "sensor_vl53l5cx",
+    "instance_name": "lidar_3",
+    "subtopic": "lidar",
+    "interval_ms": 100,
+    "dev_path": "/dev/i2c-4",
+    "gpio_path": "/dev/gpiochip0",
+    "rst_pin": 24,
+    "lpn_pins": [
+        25
+    ]
+}
