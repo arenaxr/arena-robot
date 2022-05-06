@@ -128,7 +128,8 @@ cdef class VL53L5CX:
         cdef int32_t status = vl53l5cx_py_get_range(&self.dev_conf, &results)
         if status != 0:
             raise RuntimeError
+
         return VL53L5CXSensorData(
             distance_mm=results.distance_mm,
-            target_status=results.target_status
+            target_status=np.frombuffer(results.target_status, dtype='S1')
         )

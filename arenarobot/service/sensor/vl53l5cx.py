@@ -11,6 +11,7 @@ LICENSE file in the root directory of this source tree.
 """
 
 import time
+from json import dumps, loads
 from typing import Sequence
 
 import numpy as np
@@ -18,6 +19,7 @@ from periphery import GPIO
 
 from arenarobot.service.sensor import ArenaRobotServiceSensor
 from vl53l5cx_py.driver import VL53L5CX
+from vl53l5cx_py.helpers import VL53L5CXJSONEncoder
 
 
 class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
@@ -81,9 +83,6 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
         data = []
         for sensor in self.sensors:
             ranges = sensor.get_range()
-            # Remove byte-type data (not JSON-serializable)
-            del ranges["nb_target_detected"]
-            del ranges["reflectance"]
-            del ranges["target_status"]
             data.append(ranges)
+        data = loads(dumps(data, cls=VL53L5CXJSONEncoder))
         self.publish({"data": data})

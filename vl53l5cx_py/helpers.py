@@ -11,6 +11,7 @@ LICENSE file in the root directory of this source tree.
 """
 
 from dataclasses import dataclass
+from json import JSONEncoder
 from typing import List
 
 import numpy as np
@@ -41,3 +42,19 @@ class VL53L5CXSensorData():
 # 		203.20,210.96,225.00,251.55,288.45,315.00,329.04,336.80,
 # 		215.40,225.00,239.04,258.69,281.31,300.96,315.00,324.60,
 # 		225.00,234.60,246.80,261.87,278.13,293.20,305.40,315.00]
+
+class VL53L5CXJSONEncoder(JSONEncoder):
+    """JSON Encoder helper for VL53L5CX packets."""
+
+    def default(self, obj):
+        """JSON Encoder helper function for VL53L5CX packets."""
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+
+        elif isinstance(obj, bytes):
+            return int.from_bytes(obj, "little")
+
+        elif isinstance(obj, VL53L5CXSensorData):
+            return vars(obj)
+
+        return JSONEncoder.default(self, obj)
