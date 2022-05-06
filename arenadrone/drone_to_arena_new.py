@@ -40,6 +40,9 @@ from pymavlink import mavutil
 from particlefilter import ParticleFilterLoc
 from arena import *
 
+from vl53l5cx_py.driver import VL53L5CX
+
+
 UWB_BIAS = 0.2
 UWB_STD = 0.1
 
@@ -153,26 +156,30 @@ alt_offset = 0
 #Lidar Variables
 #######################################
 
+sensor = None
+flying_box = False
+close_counter = 0
+
 VL53L5_Zone_Pitch8x8 = [
-		59.00,64.00,67.50,70.00,70.00,67.50,64.00,59.00,
-		64.00,70.00,72.90,74.90,74.90,72.90,70.00,64.00,
-		67.50,72.90,77.40,80.50,80.50,77.40,72.90,67.50,
-		70.00,74.90,80.50,85.75,85.75,80.50,74.90,70.00,
-		70.00,74.90,80.50,85.75,85.75,80.50,74.90,70.00,
-		67.50,72.90,77.40,80.50,80.50,77.40,72.90,67.50,
-		64.00,70.00,72.90,74.90,74.90,72.90,70.00,64.00,
-		59.00,64.00,67.50,70.00,70.00,67.50,64.00,59.00
+        59.00,64.00,67.50,70.00,70.00,67.50,64.00,59.00,
+        64.00,70.00,72.90,74.90,74.90,72.90,70.00,64.00,
+        67.50,72.90,77.40,80.50,80.50,77.40,72.90,67.50,
+        70.00,74.90,80.50,85.75,85.75,80.50,74.90,70.00,
+        70.00,74.90,80.50,85.75,85.75,80.50,74.90,70.00,
+        67.50,72.90,77.40,80.50,80.50,77.40,72.90,67.50,
+        64.00,70.00,72.90,74.90,74.90,72.90,70.00,64.00,
+        59.00,64.00,67.50,70.00,70.00,67.50,64.00,59.00
 ]
  
 VL53L5_Zone_Yaw8x8 = [
-		135.00,125.40,113.20, 98.13, 81.87, 66.80, 54.60, 45.00,
-		144.60,135.00,120.96,101.31, 78.69, 59.04, 45.00, 35.40,
-		156.80,149.04,135.00,108.45, 71.55, 45.00, 30.96, 23.20,
-		171.87,168.69,161.55,135.00, 45.00, 18.45, 11.31,  8.13,
-		188.13,191.31,198.45,225.00,315.00,341.55,348.69,351.87,
-		203.20,210.96,225.00,251.55,288.45,315.00,329.04,336.80,
-		215.40,225.00,239.04,258.69,281.31,300.96,315.00,324.60,
-		225.00,234.60,246.80,261.87,278.13,293.20,305.40,315.00]
+        135.00,125.40,113.20, 98.13, 81.87, 66.80, 54.60, 45.00,
+        144.60,135.00,120.96,101.31, 78.69, 59.04, 45.00, 35.40,
+        156.80,149.04,135.00,108.45, 71.55, 45.00, 30.96, 23.20,
+        171.87,168.69,161.55,135.00, 45.00, 18.45, 11.31,  8.13,
+        188.13,191.31,198.45,225.00,315.00,341.55,348.69,351.87,
+        203.20,210.96,225.00,251.55,288.45,315.00,329.04,336.80,
+        215.40,225.00,239.04,258.69,281.31,300.96,315.00,324.60,
+        225.00,234.60,246.80,261.87,278.13,293.20,305.40,315.00]
 
 #Compute Sin and Cos
 SinOfPitch = [m.sin(m.radians(i)) for i in VL53L5_Zone_Pitch8x8]
@@ -189,79 +196,79 @@ CosOfYaw = [m.cos(m.radians(i)) for i in VL53L5_Zone_Yaw8x8]
 #Optional transform parameter 
 
 def convertDistToXYZ(ranges, statuses, transform=None):
-	
-	xyzArr = np.empty((0,3))
+    
+    xyzArr = np.empty((0,3))
 
-	for zoneNum in range(0,64):
-		
-		coorNew = np.empty((0,3))
-		
-		if statuses[zoneNum] != 255 and ranges[zoneNum] > 0:
+    for zoneNum in range(0,64):
+        
+        coorNew = np.empty((0,3))
+        
+        if statuses[zoneNum] != 255 and ranges[zoneNum] > 0:
 
 
-			Hyp = ranges[zoneNum]/SinOfPitch[zoneNum]
-			x = CosOfYaw[zoneNum]*CosOfPitch[zoneNum]*Hyp
-			y = SinOfYaw[zoneNum]*CosOfPitch[zoneNum]*Hyp
-			z = ranges[zoneNum]
+            Hyp = ranges[zoneNum]/SinOfPitch[zoneNum]
+            x = CosOfYaw[zoneNum]*CosOfPitch[zoneNum]*Hyp
+            y = SinOfYaw[zoneNum]*CosOfPitch[zoneNum]*Hyp
+            z = ranges[zoneNum]
 
-			coor = np.array([x,y,z]) #get coordinates as a row matrix in numpy
+            coor = np.array([x,y,z]) #get coordinates as a row matrix in numpy
 
-			if transform is not None:
-				coor = np.append(coor,1)
-				#coor = np.transpose(coor) #for multiplication
-				coorNew = np.dot(transform, coor) #mutltiply transform by coor
+            if transform is not None:
+                coor = np.append(coor,1)
+                #coor = np.transpose(coor) #for multiplication
+                coorNew = np.dot(transform, coor) #mutltiply transform by coor
 
-				coorNew = np.transpose(coorNew)[:-1] #leave off 1 
-			else:
-				coorNew = np.transpose(coor)
+                coorNew = np.transpose(coorNew)[:-1] #leave off 1 
+            else:
+                coorNew = np.transpose(coor)
 
-		else:
-			coorNew = np.array([0,0,0])
+        else:
+            coorNew = np.array([0,0,0])
 
-		xyzArr = np.append(xyzArr, [coorNew], axis=0)
+        xyzArr = np.append(xyzArr, [coorNew], axis=0)
 
-	return xyzArr
-		
+    return xyzArr
+        
 
 
 
 #Convert yaw, pitch and roll into rotation and xyz offsets into a 4x4 transform
 def yprOffsetToTrans(yaw, pitch, roll, xOff, yOff, zOff):
 
-	yaw *= m.pi/180
-	pitch *= m.pi/180
-	roll *= m.pi/180
-	su = m.sin(roll)
-	cu = m.cos(roll)
-	sv = m.sin(pitch)
-	cv = m.cos(pitch)
-	sw = m.sin(yaw)
-	cw = m.cos(yaw)
-	#print(su,cu,sv,cv,sw,cw)
-	trans = np.array([[0,0,0,0],
-	 				  [0,0,0,0],
-					  [0,0,0,0],
-					  [0,0,0,1]]).astype(float)
+    yaw *= m.pi/180
+    pitch *= m.pi/180
+    roll *= m.pi/180
+    su = m.sin(roll)
+    cu = m.cos(roll)
+    sv = m.sin(pitch)
+    cv = m.cos(pitch)
+    sw = m.sin(yaw)
+    cw = m.cos(yaw)
+    #print(su,cu,sv,cv,sw,cw)
+    trans = np.array([[0,0,0,0],
+                      [0,0,0,0],
+                      [0,0,0,0],
+                      [0,0,0,1]]).astype(float)
 
-	#Rotation
-	trans[0][0] = 1
-	trans[0][0] = cv*cw
-	trans[0][1] = su*sv*cw - cu*sw
-	trans[0][2] = su*sw + cu*sv*cw
-	trans[1][0] = cv*sw
-	trans[1][1] = cu*cw + su*sv*sw
-	trans[1][2] = cu*sv*sw - su*cw
-	trans[2][0] = -sv
-	trans[2][1] = su*cv
-	trans[2][2] = cu*cv  
+    #Rotation
+    trans[0][0] = 1
+    trans[0][0] = cv*cw
+    trans[0][1] = su*sv*cw - cu*sw
+    trans[0][2] = su*sw + cu*sv*cw
+    trans[1][0] = cv*sw
+    trans[1][1] = cu*cw + su*sv*sw
+    trans[1][2] = cu*sv*sw - su*cw
+    trans[2][0] = -sv
+    trans[2][1] = su*cv
+    trans[2][2] = cu*cv  
 
-	#Translation
-	trans[0][3] = xOff
-	trans[1][3] = yOff
-	trans[2][3] = zOff
+    #Translation
+    trans[0][3] = xOff
+    trans[1][3] = yOff
+    trans[2][3] = zOff
 
 
-	return trans
+    return trans
 #######################################
 #Lidar Transforms
 #######################################
@@ -317,6 +324,8 @@ parser.add_argument('--uwb_disable', action='store_true',
                     help="Disable UWB")
 parser.add_argument('--debug_enable', action='store_true',
                     help="Enable debug messages on terminal")
+parser.add_argument('--flight_disable', action='store_true',
+                    help="Disable Flying Boxes")
 
 args = parser.parse_args()
 
@@ -330,6 +339,7 @@ debug_enable = args.debug_enable
 enable_arena = not args.arena_disable
 update_arena_hz = args.update_arena_hz
 enable_uwb = not args.uwb_disable
+enable_flying = not args.flight_disable
 
 
 if body_offset_enabled == 1:
@@ -387,29 +397,58 @@ if enable_arena:
     arena_drone = Box(object_id="arena_drone", depth=0.4, width=0.4, height=0.07, position=Position(0, 0, 0), scale=Scale(1, 1, 1), color=(128, 0, 172), material={"opacity":0.5})
     scene.add_object(arena_drone)
 
-device = Device(host="arenaxr.org", device="drone03", debug=False)
-CUSTOM_TOPIC = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/imu_lidar"
+device = Device(host="arenaxr.org", device="drone02", debug=False)
+CUSTOM_TOPIC = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/lidar"
 
 def drone_sensor_message(client, userdata, msg):
-    print(len(msg.payload))
+    global flying_box
+
+    # print(len(msg.payload))
     payload_str = msg.payload.decode("utf-8", "ignore").replace("\\", "")[1:-1]
     payload = json.loads(payload_str)
-    if payload["msg"]["data"]["pkt_type"] == "LICOSA_PKT_TYPE_LIDAR":
-        print("------------------------")
-        # for i in range(len(payload["msg"]["data"]["sensors"])):
-        i = 0
-        sensor = payload["msg"]["data"]["sensors"][i]
-        ranges = sensor["ranges"]
-        statuses = sensor["statuses"]
-        s = 0
-        c = 0
-        for j in range(len(ranges)):
-          if statuses[j] == 5:
-            s += ranges[j]
-            c += 1
+    lidar_msg = payload["msg"]["data"][0]
 
-        if (c > 0):
-          print(i, c, s/c) 
+    dist = lidar_msg["distance_mm"]
+    status = lidar_msg["target_status"]
+
+    #print(dist)
+    s = 0
+    c = 0
+    for j in range(len(dist)):
+        if status[j] == 5:
+            s += dist[j]
+            c += 1
+    if c != 0:
+        a = s / c
+        if a < 500 and flying_box:
+            print("FOR THE LOVE OF GOD STOP")
+            with drone_lock:
+                set_mode("LOITER")
+            flying_box = False
+
+        if flying_box == False and a >= 300:
+            print("OK CONTINUE")
+            with drone_lock:
+                set_mode("GUIDED")
+            flying_box = True
+
+
+
+    #     print("------------------------")
+    #     # for i in range(len(payload["msg"]["data"]["sensors"])):
+    #     i = 0
+    #     sensor = payload["msg"]["data"]["sensors"][i]
+    #     ranges = sensor["ranges"]
+    #     statuses = sensor["statuses"]
+    #     s = 0
+    #     c = 0
+    #     for j in range(len(ranges)):
+    #       if statuses[j] == 5:
+    #         s += ranges[j]
+    #         c += 1
+
+    #     if (c > 0):
+    #       print(i, c, s/c) 
 
 device.message_callback_add(CUSTOM_TOPIC, drone_sensor_message)
 
@@ -473,9 +512,11 @@ if enable_uwb:
             13: [-0.324, 3.137, -0.44]
         }
 
+
 ####################################
 # Functions - MAVLink
 ####################################
+
 
 def uwb_loop():
     global uwb, uwb_locations, threads_should_exit, pfStatus
@@ -650,28 +691,47 @@ def set_mode(mode):
 def set_target(north, east, down, yaw=0, timeout=None):
     alt = (-down)
     with drone_lock:
-        conn.mav.mission_item_int_send(
-            1,
-            1,
-            0,
-            mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
-            2,
-            1,
-            0,
-            0,
-            0,
-            yaw,
-            int(north*METER_TO_LATLNG),
-            int(east*METER_TO_LATLNG),
-            alt
-        )
+        conn.mav.set_position_target_local_ned_send(
+              1,
+              1,
+              0,
+              mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+              0b0000111111111000,
+              north, east, down,
+              0,0,0,
+              0,0,0,
+              0,0)
+        # conn.mav.mission_item_int_send(
+        #     1,
+        #     1,
+        #     0,
+        #     mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        #     mavutil.mavlink.MAV_CMD_NAV_WAYPOINT,
+        #     2,
+        #     1,
+        #     0,
+        #     0,
+        #     0,
+        #     yaw,
+        #     int(north*METER_TO_LATLNG),
+        #     int(east*METER_TO_LATLNG),
+        #     alt
+        # )
 
-    thresh = 0.1
+    thresh = 0.3
     def condition():
-        return abs(current_global_pos[0] - north) < thresh and \
-                abs(current_global_pos[1] - east) < thresh and \
-                abs(current_global_pos[2] + down) < thresh # down is plus since it's negative altitude
+
+        g_n = current_global_pos[0]
+        g_e = current_global_pos[1]
+        g_d = current_global_pos[2]
+        # print(g_n, g_e, g_d)
+
+        l2 = m.sqrt((g_n - north)**2 + (g_e - east) ** 2 + (g_d + down) ** 2)
+        # print(l2)
+        return l2 < thresh
+        # return abs(current_global_pos[0] - north) < thresh and \
+        #         abs(current_global_pos[1] - east) < thresh and \
+        #         abs(current_global_pos[2] + down) < thresh # down is plus since it's negative altitude
     wait_for(condition, timeout=timeout)
         
 #speed_type:
@@ -695,7 +755,7 @@ def set_drone_speed(speed_type, speed):
     )
 
 def takeoff(alt):
-    set_mode("GUIDED")
+    set_mode("LOITER")
     conn.arducopter_arm()
     time.sleep(0.5)
     conn.mav.command_long_send(0, 0, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
@@ -703,6 +763,7 @@ def takeoff(alt):
     def check_alt():
         return current_global_pos[2] > alt - 0.2
     wait_for(check_alt)
+    set_mode("GUIDED")
     
 
 def land():
@@ -752,6 +813,9 @@ def att_msg_callback(value):
         arena_attitude[1] = -value.yaw*RAD_TO_DEG
         arena_attitude[2] = value.pitch*RAD_TO_DEG
 
+def local_pos_callback(value):
+    print(value.x,value.y,value.z)
+
 def global_msg_callback(value):
     global H_aeroRef_aeroBody, current_global_pos
     current_global_pos = [value.lat / METER_TO_LATLNG, value.lon / METER_TO_LATLNG, value.alt / 1000]
@@ -780,6 +844,7 @@ def imu_msg_callback(value):
 
 def batt_msg_callback(value):
     global arena_batt
+    #print(value.voltages[0])
     arena_batt = value.voltages[0] / 4500
 
 def mode_msg_callback(value):
@@ -847,6 +912,7 @@ def user_input_monitor():
         set_default_global_origin()
         set_default_home_position()
         time.sleep(5) # Wait a short while for FCU to start working
+    print("DRONE READY")
     drone_ready = True
 
     while not threads_should_exit:
@@ -889,7 +955,8 @@ mavlink_callbacks = {
     'MODE':mode_msg_callback,
     'HOME_POSITION':home_msg_callback,
     'RAW_IMU':imu_msg_callback,
-    'BATTERY_STATUS':batt_msg_callback
+    'BATTERY_STATUS':batt_msg_callback,
+    'LOCAL_POSITION_NED':local_pos_callback
 }
 
 # connecting and configuring the camera is a little hit-and-miss.
@@ -983,7 +1050,6 @@ def main():
 
                     # Pose data consists of translation and rotation
                     data = pose.get_pose_data()
-                    
                     # Confidence level value from T265: 0-3, remapped to 0 - 100: 0% - Failed / 33.3% - Low / 66.6% - Medium / 100% - High  
                     current_confidence_level = float(data.tracker_confidence * 100 / 3)  
 
@@ -1071,6 +1137,7 @@ if enable_uwb:
     uwb_thread = threading.Thread(target=uwb_loop)
     uwb_thread.start()
 
+
 # Send MAVlink messages in the background at pre-determined frequencies
 sched = BackgroundScheduler()
 if enable_msg_vision_position_estimate and vision_position_estimate_msg_hz > 0:
@@ -1099,44 +1166,58 @@ def wait_drone_ready():
     return wait_for(drone_is_ready, 1)
 
 def fly_box():
+    global flying_box
     print("Start")
+    flying_box = True
+    def is_stopped():
+        global flying_box
+        return flying_box
+
     while not main_loop_should_quit:
-        set_target(0, 0, -2, 0, timeout=3)
-        time.sleep(1)
+        set_target(0, 0, -1.5, 0)
+        #wait_for(is_stopped)
+        time.sleep(3)
         if main_loop_should_quit:
             return
 
-        set_target(2, 0, -2, 0, timeout=3)
-        time.sleep(1)
+        set_target(1.5, 0, -1.5, 0)
+        #wait_for(is_stopped)
+        time.sleep(3)
         if main_loop_should_quit:
             return
 
-        set_target(2, -2, -2, 0, timeout=3)
-        time.sleep(1)
+        set_target(1.5, -1.5, -1.5, 0)
+        #wait_for(is_stopped)
+        time.sleep(3)
         if main_loop_should_quit:
             return
 
-        set_target(0, -2, -2, 0, timeout=3)
-        time.sleep(1)
+        set_target(0, -1.5, -1.5, 0)
+        #wait_for(is_stopped)
+        time.sleep(3)
         if main_loop_should_quit:
             return
 
 #Main blocking portion
-# wait_drone_ready()
-# print("START")
-# time.sleep(1)
 
-# set_mode("GUIDED")
-# set_drone_speed(0, 32)
-# set_drone_speed(1, 32)
-# set_drone_speed(2, 32)
-# set_drone_speed(3, 32)
-# time.sleep(1)
-# print("TAKEOFF")
-# takeoff(2)
+if enable_flying:
+    set_mode("GUIDED")
+    print("START1")
+    wait_drone_ready()
+    print("START")
+    time.sleep(1)
 
-# box_thread = threading.Thread(target=fly_box)
-# box_thread.start()
+    set_mode("GUIDED")
+    set_drone_speed(0, 32)
+    set_drone_speed(1, 32)
+    set_drone_speed(2, 32)
+    set_drone_speed(3, 32)
+    time.sleep(1)
+    print("TAKEOFF")
+    takeoff(1.5)
+
+    box_thread = threading.Thread(target=fly_box)
+    box_thread.start()
 
 if enable_arena:
     scene.run_tasks()
@@ -1154,6 +1235,7 @@ mavlink_thread.join()
 if enable_uwb:
     uwb_thread.join()
     uwb.close()
+
 if enable_arena:
     scene.disconnect()
 conn.close()
