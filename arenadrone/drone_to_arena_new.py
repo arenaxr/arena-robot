@@ -469,16 +469,18 @@ def device_target_location_update(client, userdata, msg):
 
 # device.message_callback_add(CUSTOM_TOPIC_waypoints, device_target_location_update)
 
+landed = False
 def update_arena_pos():
-    global arena_drone, arena_attitude, arena_batt, pfStatus
+    global arena_drone, arena_attitude, arena_batt, pfStatus, landed
     # with pf_lock:
     #     if pfStatus < 3:
     #         return
     #     pf_data = pf.getTagLoc()
     # print("ARENA", pf_data[2], pf_data[4], -pf_data[3], pf_data[5])
     # pfOutFile.write(f"{str(time.time())},{str(pf_data[1])},{str(pf_data[2])},{str(pf_data[3])},{str(pf_data[4])},{str(pf_data[5])}\n")
-    arena_drone.update_attributes(position=Position(current_global_pos[0], current_global_pos[2], current_global_pos[1]), rotation=Rotation(arena_attitude[0], arena_attitude[1], arena_attitude[2]))#, battery=Attribute(battery=arena_batt))
-    scene.update_object(arena_drone)
+    if not landed:
+        arena_drone.update_attributes(position=Position(current_global_pos[0], current_global_pos[2], current_global_pos[1]), rotation=Rotation(arena_attitude[0], arena_attitude[1], arena_attitude[2]))#, battery=Attribute(battery=arena_batt))
+        scene.update_object(arena_drone)
 
 uwb_locations = {}
 
@@ -785,15 +787,16 @@ def takeoff(alt):
     
 
 def land():
-    global arena_drone
+    global arena_drone, landed
     set_mode("LAND")
     def check_alt():
         return current_global_pos[2] < 0.3
     wait_for(check_alt)
     time.sleep(1)
-    conn.arducopter_disarm()
+    landed = True
     if enable_arena:
-        arena_drone.delete()
+        scene.delete_object(arena_drone)
+    conn.arducopter_disarm()
     
 def wait_for(condition, interval=0.1, timeout=None):
     startTime = time.time()
