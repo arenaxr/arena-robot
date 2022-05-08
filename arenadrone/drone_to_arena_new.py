@@ -454,7 +454,11 @@ def drone_sensor_message(client, userdata, msg):
 device.message_callback_add(CUSTOM_TOPIC_lidar, drone_sensor_message)
 
 def device_target_location_update(client, userdata, msg):
-    pos = msg.target.position
+    payload_str = msg.payload.decode("utf-8", "ignore").replace("\\", "")[1:-1]
+    payload = json.loads(payload_str)
+    print(payload)
+    waypoint_msg = payload["msg"]["data"][0]
+    pos = waypoint_msg["target"]["position"]
     # yaw = msg.target.rotation.y
     print("***************************************************")
     # print("DEVICE TARGET UPDATE:", pos, yaw)
