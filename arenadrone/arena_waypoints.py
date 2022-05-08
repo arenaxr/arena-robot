@@ -25,7 +25,7 @@ mode = Mode.INIT
 
 drone_target = Box(
     object_id="drone_target",
-    position=(0,0,0),
+    position=(0,HEIGHT,0),
     scale=(0.1,0.1,0.1),
     color=(204,0,0),
     clickable=True
