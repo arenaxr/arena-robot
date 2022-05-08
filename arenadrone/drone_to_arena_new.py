@@ -461,11 +461,11 @@ def device_target_location_update(client, userdata, msg):
     print("***************************************************")
     # print("DEVICE TARGET UPDATE:", pos, yaw)
     print("DEVICE TARGET UPDATE:", pos)
-    if (pos.x == 0 and pos.y == 0 and pos.z == 0):
+    if (pos["x"] == 0 and pos["y"] == 0 and pos["z"] == 0):
         land()
     else:
         # set_target(pos.x, pos.z, -pos.y, yaw=yaw)
-        set_target(pos.x, pos.z, -pos.y)
+        set_target(pos["x"], pos["z"], -pos["y"])
 
 device.message_callback_add(CUSTOM_TOPIC_waypoints, device_target_location_update)
 
