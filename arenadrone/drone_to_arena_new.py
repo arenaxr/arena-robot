@@ -785,12 +785,15 @@ def takeoff(alt):
     
 
 def land():
+    global arena_drone
     set_mode("LAND")
     def check_alt():
         return current_global_pos[2] < 0.3
     wait_for(check_alt)
     time.sleep(1)
     conn.arducopter_disarm()
+    if enable_arena:
+        arena_drone.delete()
     
 def wait_for(condition, interval=0.1, timeout=None):
     startTime = time.time()
