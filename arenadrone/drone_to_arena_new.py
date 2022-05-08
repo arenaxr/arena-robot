@@ -398,7 +398,8 @@ if enable_arena:
     scene.add_object(arena_drone)
 
 device = Device(host="arenaxr.org", device="drone02", debug=False)
-CUSTOM_TOPIC = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/lidar"
+CUSTOM_TOPIC_lidar = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/lidar"
+CUSTOM_TOPIC_waypoints = f"{device.realm}/d/{device.namespace}/{device.device}/waypoints"
 
 def drone_sensor_message(client, userdata, msg):
     global flying_box
@@ -448,9 +449,23 @@ def drone_sensor_message(client, userdata, msg):
     #         c += 1
 
     #     if (c > 0):
-    #       print(i, c, s/c) 
+    #       print(i, c, s/c)
 
-device.message_callback_add(CUSTOM_TOPIC, drone_sensor_message)
+device.message_callback_add(CUSTOM_TOPIC_lidar, drone_sensor_message)
+
+def device_target_location_update(client, userdata, msg):
+    pos = msg.target.position
+    # yaw = msg.target.rotation.y
+    print("***************************************************")
+    # print("DEVICE TARGET UPDATE:", pos, yaw)
+    print("DEVICE TARGET UPDATE:", pos)
+    if (pos.x == 0 and pos.y == 0 and pos.z == 0):
+        land()
+    else:
+        # set_target(pos.x, pos.z, -pos.y, yaw=yaw)
+        set_target(pos.x, pos.z, -pos.y)
+
+device.message_callback_add(CUSTOM_TOPIC_waypoints, device_target_location_update)
 
 def update_arena_pos():
     global arena_drone, arena_attitude, arena_batt, pfStatus
@@ -1217,8 +1232,8 @@ if enable_flying:
     print("TAKEOFF")
     takeoff(1.5)
 
-    box_thread = threading.Thread(target=fly_box)
-    box_thread.start()
+    # box_thread = threading.Thread(target=fly_box)
+    # box_thread.start()
 
 if enable_arena:
     scene.run_tasks()
