@@ -1183,6 +1183,14 @@ def wait_drone_ready():
         return drone_ready
     return wait_for(drone_is_ready, 1)
 
+def no_box():
+    global flying_box
+    print("Start no box")
+
+    while not main_loop_should_quit:
+        if main_loop_should_quit:
+            return
+
 def fly_box():
     global flying_box
     print("Start")
@@ -1236,6 +1244,8 @@ if enable_flying:
 
     # box_thread = threading.Thread(target=fly_box)
     # box_thread.start()
+    box_thread = threading.Thread(target=no_box)
+    box_thread.start()
 
 if enable_arena:
     scene.run_tasks()
