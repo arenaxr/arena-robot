@@ -509,9 +509,8 @@ def arena_target_location_update(target):
         set_target(pos.x, pos.z, -pos.y, yaw=yaw)
 
 def arena_get_target_location():
-    target = scene.all_objects["drone_target"]
-    if target:
-        target.update_handler = arena_target_location_update
+    if "drone_target" in scene.all_objects and scene.all_objects["drone_target"]:
+        scene.all_objects["drone_target"].update_handler = arena_target_location_update
     else:
         print("No target found, waypoint flying disabled")
 
