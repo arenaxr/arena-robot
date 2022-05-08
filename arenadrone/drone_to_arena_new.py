@@ -1144,7 +1144,7 @@ def main():
 #################################
 if enable_arena:
     # scene.run_once(arena_get_uwb_locations)
-    # scene.run_once(arena_get_target_location)
+    scene.run_once(arena_get_target_location)
     scene.run_forever(update_arena_pos, 1000/update_arena_hz)
 
 mavlink_thread = threading.Thread(target=mavlink_loop)
