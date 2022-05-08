@@ -393,7 +393,7 @@ else:
 arena_attitude = [0, 0, 0]
 arena_batt = 0
 if enable_arena:
-    scene = Scene(host="arenaxr.org", scene="ARENA-Drone", realm="realm", namespace="astrasse")
+    scene = Scene(host="arenaxr.org", scene="ARENA-drone", realm="realm", namespace="pnaseck")
     arena_drone = Box(object_id="arena_drone", depth=0.4, width=0.4, height=0.07, position=Position(0, 0, 0), scale=Scale(1, 1, 1), color=(128, 0, 172), material={"opacity":0.5})
     scene.add_object(arena_drone)
 
@@ -454,13 +454,13 @@ device.message_callback_add(CUSTOM_TOPIC, drone_sensor_message)
 
 def update_arena_pos():
     global arena_drone, arena_attitude, arena_batt, pfStatus
-    with pf_lock:
-        if pfStatus < 3:
-            return
-        pf_data = pf.getTagLoc()
-    print("ARENA", pf_data[2], pf_data[4], -pf_data[3], pf_data[5])
-    pfOutFile.write(f"{str(time.time())},{str(pf_data[1])},{str(pf_data[2])},{str(pf_data[3])},{str(pf_data[4])},{str(pf_data[5])}\n")
-    arena_drone.update_attributes(position=Position(pf_data[2], pf_data[4], -pf_data[3]), rotation=Rotation(arena_attitude[0], arena_attitude[1]+pf_data[5]*RAD_TO_DEG, arena_attitude[2]))#, battery=Attribute(battery=arena_batt))
+    # with pf_lock:
+    #     if pfStatus < 3:
+    #         return
+    #     pf_data = pf.getTagLoc()
+    # print("ARENA", pf_data[2], pf_data[4], -pf_data[3], pf_data[5])
+    # pfOutFile.write(f"{str(time.time())},{str(pf_data[1])},{str(pf_data[2])},{str(pf_data[3])},{str(pf_data[4])},{str(pf_data[5])}\n")
+    arena_drone.update_attributes(position=Position(current_global_pos[0], current_global_pos[1], -current_global_pos[2]), rotation=Rotation(arena_attitude[0], arena_attitude[1], arena_attitude[2]))#, battery=Attribute(battery=arena_batt))
     scene.update_object(arena_drone)
 
 uwb_locations = {}
@@ -502,7 +502,8 @@ if enable_uwb:
     uwb = serial.Serial('/dev/ttyAMA1', 115200, timeout=1)
 
     uwb.write(b"AT+RATE 10\n")
-    if not enable_arena:
+    # if not enable_arena:
+    if True:
         uwb_locations = {
             7: [1.988, 1.749, 2.608],
             8: [2.966, 0.799, -1.851],
@@ -1125,8 +1126,8 @@ def main():
 # Scheduler
 #################################
 if enable_arena:
-    scene.run_once(arena_get_uwb_locations)
-    scene.run_once(arena_get_target_location)
+    # scene.run_once(arena_get_uwb_locations)
+    # scene.run_once(arena_get_target_location)
     scene.run_forever(update_arena_pos, 1000/update_arena_hz)
 
 mavlink_thread = threading.Thread(target=mavlink_loop)
