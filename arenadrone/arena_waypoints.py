@@ -67,13 +67,12 @@ def move_target():
         next_mode = Mode.DONE
     elif mode == Mode.DONE:
         next_mode = Mode.DONE
-        return
     else:
         raise Exception("Unknown mode", mode)
 
     if mode == Mode.DELETE:
         scene.delete_object(drone_target)
-    else:
+    elif mode != Mode.DONE:
         drone_target.update_attributes(position=Position(pos[0], pos[1], pos[2]))
         scene.update_object(drone_target, clickable=True, evt_handler=click)
 
