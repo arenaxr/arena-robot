@@ -31,7 +31,7 @@ import argparse
 import threading
 import signal
 import serial
-from arena.device import Device
+# from arena.device import Device
 
 from time import sleep
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -397,9 +397,9 @@ if enable_arena:
     arena_drone = Box(object_id="arena_drone", depth=0.4, width=0.4, height=0.07, position=Position(0, 0, 0), scale=Scale(1, 1, 1), color=(128, 0, 172), material={"opacity":0.5})
     scene.add_object(arena_drone)
 
-device = Device(host="arenaxr.org", device="drone02", debug=False)
-CUSTOM_TOPIC_lidar = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/lidar"
-CUSTOM_TOPIC_waypoints = f"{device.realm}/d/{device.namespace}/{device.device}/waypoints"
+# device = Device(host="arenaxr.org", device="drone02", debug=False)
+# CUSTOM_TOPIC_lidar = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/lidar"
+# CUSTOM_TOPIC_waypoints = f"{device.realm}/d/{device.namespace}/{device.device}/waypoints"
 
 def drone_sensor_message(client, userdata, msg):
     global flying_box
@@ -451,7 +451,7 @@ def drone_sensor_message(client, userdata, msg):
     #     if (c > 0):
     #       print(i, c, s/c)
 
-device.message_callback_add(CUSTOM_TOPIC_lidar, drone_sensor_message)
+# device.message_callback_add(CUSTOM_TOPIC_lidar, drone_sensor_message)
 
 def device_target_location_update(client, userdata, msg):
     payload_str = msg.payload.decode("utf-8", "ignore").replace("\\", "")
@@ -467,7 +467,7 @@ def device_target_location_update(client, userdata, msg):
         # set_target(pos.x, pos.z, -pos.y, yaw=yaw)
         set_target(pos["x"], pos["z"], -pos["y"])
 
-device.message_callback_add(CUSTOM_TOPIC_waypoints, device_target_location_update)
+# device.message_callback_add(CUSTOM_TOPIC_waypoints, device_target_location_update)
 
 def update_arena_pos():
     global arena_drone, arena_attitude, arena_batt, pfStatus
@@ -477,7 +477,7 @@ def update_arena_pos():
     #     pf_data = pf.getTagLoc()
     # print("ARENA", pf_data[2], pf_data[4], -pf_data[3], pf_data[5])
     # pfOutFile.write(f"{str(time.time())},{str(pf_data[1])},{str(pf_data[2])},{str(pf_data[3])},{str(pf_data[4])},{str(pf_data[5])}\n")
-    arena_drone.update_attributes(position=Position(current_global_pos[0], current_global_pos[1], -current_global_pos[2]), rotation=Rotation(arena_attitude[0], arena_attitude[1], arena_attitude[2]))#, battery=Attribute(battery=arena_batt))
+    arena_drone.update_attributes(position=Position(current_global_pos[0], current_global_pos[2], current_global_pos[1]), rotation=Rotation(arena_attitude[0], arena_attitude[1], arena_attitude[2]))#, battery=Attribute(battery=arena_batt))
     scene.update_object(arena_drone)
 
 uwb_locations = {}
