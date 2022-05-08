@@ -1,16 +1,27 @@
 #!/usr/bin/env python3
+from enum import Enum, auto
+
 from arena import *
 
 scene = Scene(host="arenaxr.org", scene="ARENA-drone", realm="realm", namespace="pnaseck")
 
+HEIGHT = 1.5
 positions = [
-    [0, 1.5, 0],
-    [1.5, 1.5, 0],
-    [1.5, 1.5, -1.5],
-    [0, 1.5, -1.5]
+    [1.5, HEIGHT, 0],
+    [1.5, HEIGHT, -1.5],
+    [0, HEIGHT, -1.5],
+    [0, HEIGHT, 0],
 ]
-current = 0
-mode = "INIT"
+current_pos = 0
+
+class Mode(Enum):
+    INIT = auto()
+    FLY = auto()
+    GOTO_LAND = auto()
+    LAND = auto()
+    DELETE = auto()
+    DONE = auto()
+mode = Mode.INIT
 
 drone_target = Box(
     object_id="drone_target",
@@ -20,40 +31,51 @@ drone_target = Box(
     clickable=True
 )
 
-def land(scene, evt, msg):
+def click(scene, evt, msg):
     global mode
-    if mode == "FLY":
-        mode = "GOTO_LAND"
+    next_mode = mode
+    if evt["type"] == "mousedown":
+        if mode == Mode.INIT:
+            next_mode = Mode.FLY
+        elif mode == Mode.FLY:
+            next_mode = Mode.GOTO_LAND
+    mode = next_mode
 
 @scene.run_forever(interval_ms=4000)
 def move_target():
-    global current, positions, mode
-    print(mode)
+    global current_pos, positions, mode, HEIGHT
+    print(mode.name)
 
     next_mode = mode
-    if mode == "INIT":
-        pos = positions[0]
+    if mode == Mode.INIT:
+        pos = [0, HEIGHT, 0]
         scene.update_object(drone_target)
-        next_mode = "FLY"
-    elif mode == "FLY":
-        pos = positions[current]
-        current += 1
-        if current >= len(positions):
-            current = 0
-    elif mode == "GOTO_LAND":
-        pos = [0, 1.5, 0]
-        next_mode = "LAND"
-    elif mode == "LAND":
+        next_mode = Mode.INIT
+    elif mode == Mode.FLY:
+        pos = positions[current_pos]
+        current_pos += 1
+        if current_pos >= len(positions):
+            current_pos = 0
+        next_mode = Mode.FLY
+    elif mode == Mode.GOTO_LAND:
+        pos = [0, HEIGHT, 0]
+        next_mode = Mode.LAND
+    elif mode == Mode.LAND:
         pos = [0, 0, 0]
-        next_mode = "DELETE"
-    elif mode == "DELETE":
+        next_mode = Mode.DELETE
+    elif mode == Mode.DELETE:
+        next_mode = Mode.DONE
+    elif mode == Mode.DONE:
+        next_mode = Mode.DONE
         return
+    else:
+        raise Exception("Unknown mode", mode)
 
-    if mode == "DELETE":
+    if mode == Mode.DELETE:
         scene.delete_object(drone_target)
     else:
         drone_target.update_attributes(position=Position(pos[0], pos[1], pos[2]))
-        scene.update_object(drone_target, clickable=True, evt_handler=land)
+        scene.update_object(drone_target, clickable=True, evt_handler=click)
 
     mode = next_mode
 
