@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from enum import Enum, auto
 from arena import *
+import time
+import sys
 
 scene = Scene(host="arenaxr.org", scene="ARENA-drone", realm="realm", namespace="pnaseck")
 
@@ -10,14 +12,19 @@ HEIGHT = 1.5
 def arena_init():
     global drone_target, pushpin, drone_target_ind
 
-    drone_target = Box(
-        object_id="drone_target",
-        position=(0,HEIGHT,0),
-        scale=(0.1,0.1,0.1),
-        color=(204,0,0),
-        clickable=True,
-        persist=True
-    )
+    try:
+        drone_target = scene.get_persisted_obj("drone_target")
+        assert drone_target is not None
+        assert len(sys.argv) == 1 # ONLY USE PERSIST IF NO ARGUMENTS GIVEN
+    except:
+        drone_target = Box(
+            object_id="drone_target",
+            position=(0,HEIGHT,0),
+            scale=(0.1,0.1,0.1),
+            color=(204,0,0),
+            clickable=True,
+            persist=True
+        )
 
     pushpin = Cylinder(
         object_id="pushpin",
@@ -42,7 +49,7 @@ def arena_init():
     origin = Box(
         object_id="origin",
         position=(0, 0, 0),
-        scale=(.1, .1, .1),
+        scale=(.05, .05, .05),
         color=(120, 120, 120),
         persist=True,
         clickable=True,
@@ -58,18 +65,23 @@ def arena_init():
 
 
 done = False
+landed = False
+land_time = 0
 
 def click_handler(scene, evt, msg):
-    global done
+    global done, land_time
     if done: return
 
     if evt.type == "mousedown":
         pos = pushpin.data.position
 
         if abs(pos["x"]) < 0.4 and abs(pos["z"]) < 0.4:
-            wp = (0, 0, 0)
-            drone_target_ind.update_attributes(position=Position(999, 999, 999), persist=True)
+            wp = (0, HEIGHT, 0)
+            drone_target_ind.update_attributes(position=Position(0, HEIGHT*0.5, 0), persist=True)
+            drone_target_ind.data.color = Color(220,40,40)
             scene.update_object(drone_target_ind)
+
+            land_time = time.time()
             done = True
             pushpin.data.position = Position(999, 999, 999)
             scene.update_object(pushpin)
@@ -95,7 +107,20 @@ def point_rotation_by_quaternion(point,q):
 def on_message(scene, evt, msg):
     oid = msg.get("object_id")
 
-    if done: return
+    global landed
+    if landed: return
+
+    if done:
+        if time.time() - land_time > 6:
+            drone_target.data.position = Position(0, 0, 0)
+            scene.update_object(drone_target)
+            landed = True
+
+            drone_target_ind.update_attributes(position=Position(999, 999, 999), persist=True)
+            scene.update_object(drone_target_ind)
+
+        return
+
     if not oid.startswith("camera"): return
     # Get the position and orientation of the user's head
     pos = msg["data"]["position"]
