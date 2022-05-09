@@ -39,21 +39,47 @@ def arena_init():
         persist=True
     )
 
+    origin = Box(
+        object_id="origin",
+        position=(0, 0, 0),
+        scale=(.1, .1, .1),
+        color=(120, 120, 120),
+        persist=True,
+        clickable=True,
+        evt_handler=click_handler
+    )
+
     scene.add_object(drone_target)
     scene.add_object(drone_target_ind)
     scene.add_object(pushpin)
+    scene.add_object(origin)
 
     scene.on_msg_callback = on_message
 
+
+done = False
+
 def click_handler(scene, evt, msg):
+    global done
+    if done: return
+
     if evt.type == "mousedown":
         pos = pushpin.data.position
-        wp = (pos["x"], HEIGHT, pos["z"])
+
+        if abs(pos["x"]) < 0.4 and abs(pos["z"]) < 0.4:
+            wp = (0, 0, 0)
+            drone_target_ind.update_attributes(position=Position(999, 999, 999), persist=True)
+            scene.update_object(drone_target_ind)
+            done = True
+            pushpin.data.position = Position(999, 999, 999)
+            scene.update_object(pushpin)
+        else:
+            wp = (pos["x"], HEIGHT, pos["z"])
+            drone_target_ind.update_attributes(position=Position(wp[0], HEIGHT*0.5, wp[2]), persist=True)
+            scene.update_object(drone_target_ind)
+
         drone_target.update_attributes(position=Position(*wp), persist=True)
         scene.update_object(drone_target)
-
-        drone_target_ind.update_attributes(position=Position(wp[0], HEIGHT*0.5, wp[2]), persist=True)
-        scene.update_object(drone_target_ind)
 
 def quaternion_mult(q,r):
     return [r[0]*q[0]-r[1]*q[1]-r[2]*q[2]-r[3]*q[3],
@@ -69,6 +95,7 @@ def point_rotation_by_quaternion(point,q):
 def on_message(scene, evt, msg):
     oid = msg.get("object_id")
 
+    if done: return
     if not oid.startswith("camera"): return
     # Get the position and orientation of the user's head
     pos = msg["data"]["position"]
@@ -81,8 +108,12 @@ def on_message(scene, evt, msg):
     x = pos["x"] + res*vec[0]
     z = pos["z"] + res*vec[2]
 
+    if abs(x) < 0.4 and abs(z) < 0.4:
+        pushpin.data.color = Color(220,40,40)
+    else:
+        pushpin.data.color = Color(63,150,210)
+
     pushpin.data.position = Position(x, 0.01, z)
-    pushpin.data.color = Color(63,150,210)
     scene.update_object(pushpin)
 
 scene.run_tasks()
