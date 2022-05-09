@@ -105,46 +105,49 @@ def point_rotation_by_quaternion(point,q):
     return quaternion_mult(quaternion_mult(q,r),q_conj)[1:]
 
 def on_message(scene, evt, msg):
-    oid = msg.get("object_id")
+    try:
+        oid = msg.get("object_id")
 
-    global landed, land_time
+        global landed, land_time
 
-    if landed:
-        if time.time() - land_time > 6:
-            sys.exit(0)
-        return
+        if landed:
+            if time.time() - land_time > 6:
+                sys.exit(0)
+            return
 
-    if done:
-        if time.time() - land_time > 6:
-            drone_target.data.position = Position(0, 0, 0)
-            scene.update_object(drone_target)
-            land_time = time.time()
-            landed = True
+        if done:
+            if time.time() - land_time > 6:
+                drone_target.data.position = Position(0, 0, 0)
+                scene.update_object(drone_target)
+                land_time = time.time()
+                landed = True
 
-            drone_target_ind.update_attributes(position=Position(999, 999, 999), persist=True)
-            scene.update_object(drone_target_ind)
+                drone_target_ind.update_attributes(position=Position(999, 999, 999), persist=True)
+                scene.update_object(drone_target_ind)
 
-        return
+            return
 
-    if not oid.startswith("camera"): return
-    # Get the position and orientation of the user's head
-    pos = msg["data"]["position"]
-    rot = msg["data"]["rotation"]
-    rot = [rot["w"], rot["x"], rot["y"], rot["z"]]
+        if not oid.startswith("camera"): return
+        # Get the position and orientation of the user's head
+        pos = msg["data"]["position"]
+        rot = msg["data"]["rotation"]
+        rot = [rot["w"], rot["x"], rot["y"], rot["z"]]
 
-    # Compute a raycast from the user's head to the ground plane
-    vec = point_rotation_by_quaternion([0, 0, -1], rot)
-    res = (0 - pos["y"]) / vec[1]
-    x = pos["x"] + res*vec[0]
-    z = pos["z"] + res*vec[2]
+        # Compute a raycast from the user's head to the ground plane
+        vec = point_rotation_by_quaternion([0, 0, -1], rot)
+        res = (0 - pos["y"]) / vec[1]
+        x = pos["x"] + res*vec[0]
+        z = pos["z"] + res*vec[2]
 
-    if abs(x) < 0.4 and abs(z) < 0.4:
-        pushpin.data.color = Color(220,40,40)
-    else:
-        pushpin.data.color = Color(63,150,210)
+        if abs(x) < 0.4 and abs(z) < 0.4:
+            pushpin.data.color = Color(220,40,40)
+        else:
+            pushpin.data.color = Color(63,150,210)
 
-    pushpin.data.position = Position(x, 0.01, z)
-    scene.update_object(pushpin)
+        pushpin.data.position = Position(x, 0.01, z)
+        scene.update_object(pushpin)
+    except:
+        pass
 
 scene.run_tasks()
 
