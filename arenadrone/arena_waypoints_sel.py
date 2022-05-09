@@ -107,13 +107,18 @@ def point_rotation_by_quaternion(point,q):
 def on_message(scene, evt, msg):
     oid = msg.get("object_id")
 
-    global landed
-    if landed: return
+    global landed, land_time
+
+    if landed:
+        if time.time() - land_time > 6:
+            sys.exit(0)
+        return
 
     if done:
         if time.time() - land_time > 6:
             drone_target.data.position = Position(0, 0, 0)
             scene.update_object(drone_target)
+            land_time = time.time()
             landed = True
 
             drone_target_ind.update_attributes(position=Position(999, 999, 999), persist=True)
