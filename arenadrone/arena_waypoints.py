@@ -23,12 +23,15 @@ class Mode(Enum):
     DONE = auto()
 mode = Mode.INIT
 
+added = False
+
 drone_target = Box(
     object_id="drone_target",
     position=(0,HEIGHT,0),
     scale=(0.1,0.1,0.1),
     color=(204,0,0),
-    clickable=True
+    clickable=True,
+    persist=True
 )
 
 def click(scene, evt, msg):
@@ -43,13 +46,13 @@ def click(scene, evt, msg):
 
 @scene.run_forever(interval_ms=4000)
 def move_target():
-    global current_pos, positions, mode, HEIGHT
+    global current_pos, positions, mode, HEIGHT, added 
     print(mode.name)
 
     next_mode = mode
     if mode == Mode.INIT:
         pos = [0, HEIGHT, 0]
-        scene.update_object(drone_target)
+        scene.update_object(drone_target,persist=True)
         next_mode = Mode.INIT
     elif mode == Mode.FLY:
         pos = positions[current_pos]
@@ -70,10 +73,14 @@ def move_target():
     else:
         raise Exception("Unknown mode", mode)
 
+    if not added: 
+        scene.add_object(drone_target)
+        added = True
+        
     if mode == Mode.DELETE:
         scene.delete_object(drone_target)
     elif mode != Mode.DONE:
-        drone_target.update_attributes(position=Position(pos[0], pos[1], pos[2]))
+        drone_target.update_attributes(position=Position(pos[0], pos[1], pos[2]), persist=True)
         scene.update_object(drone_target, clickable=True, evt_handler=click)
 
     mode = next_mode
