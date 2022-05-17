@@ -32,7 +32,7 @@ jobs:
           - { python-version: "3.9",  name: pydocstyle, cmd: pydocstyle,                                                                          }
           - { python-version: "3.8",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 }
           - { python-version: "3.9",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 }
-          - { python-version: "3.10", name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py                                         }
+          - { python-version: "3.10", name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 }
           - { python-version: "3.9",  name: isort,      cmd: isort --check-only                                                                   }
           - { python-version: "3.9",  name: bandit,     cmd: bandit -r                                                                            }
     steps:
@@ -52,6 +52,9 @@ jobs:
         if: matrix.python-version != '3.10'
       - name: Install Python Development Dependencies
         run: python -m pip install -e .[dev]
+        if: matrix.python-version == '3.10'
+      - name: Ignore pyrealsense2
+        run: printf "[TYPECHECK]\nignored-modules=pyrealsense2" > .pylintrc
         if: matrix.python-version == '3.10'
       - name: Run ${{ matrix.name }}
         run: python -m ${{ matrix.cmd }} arenarobot/
