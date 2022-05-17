@@ -101,6 +101,9 @@ setup(
             'isort>=5,<6',
             'pydocstyle>=6,<7',
             'pylint>=2,<3'
+        ],
+        'realsense': [
+            'pyrealsense2>=2,<3'
         ]
     }
 )
