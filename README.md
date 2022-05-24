@@ -54,6 +54,11 @@ This is a LiCosa IMU and lidar sensor connected via serial:
 This is an Intel T265:
 
  - `timeout_ms`: Optional. Defaults to 500. Timeout in milliseconds for waiting for pose frames from the sensor.
+ - `enable_pose_jumping`: Optional. Defaults to False. Enable position jumping. See [librealsense docs](https://github.com/IntelRealSense/librealsense/blob/d19829788008b8e000870895a068f0c43d58895a/doc/t265.md#are-there-any-t265-specific-options).
+ - `enable_relocalization`: Optional. Defaults to False. Enable appearance based relocalization. See [librealsense docs](https://github.com/IntelRealSense/librealsense/blob/d19829788008b8e000870895a068f0c43d58895a/doc/t265.md#are-there-any-t265-specific-options).
+ - `enable_mapping`: Optional. Defaults to False. Enable an internal map. See [librealsense docs](https://github.com/IntelRealSense/librealsense/blob/d19829788008b8e000870895a068f0c43d58895a/doc/t265.md#are-there-any-t265-specific-options).
+ - `enable_map_preservation`: Optional. Defaults to False. Preserve map from the previous run.
+ - `enable_dynamic_calibration`: Optional. Defaults to True. Enable dynamic calibration.
 
 #### sensor_vl53l5cx
 This is a lidar sensor that connects through I2C and addresses by toggling its LPn pins. It additionally supports the following arguments:

@@ -26,9 +26,19 @@ class ArenaRobotServiceSensorT265(ArenaRobotServiceSensor):
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-statements
-    def __init__(self, timeout_ms: int = 500, **kwargs):
+    def __init__(self, timeout_ms: int = 500,
+                 enable_pose_jumping: bool = False,
+                 enable_relocalization: bool = False,
+                 enable_map_preservation: bool = False,
+                 enable_mapping: bool = False,
+                 enable_dynamic_calibration: bool = True, **kwargs):
         """Initialize the T265 sensor class."""
         self.timeout_ms = timeout_ms
+        self.enable_pose_jumping = enable_pose_jumping
+        self.enable_relocalization = enable_relocalization
+        self.enable_map_preservation = enable_map_preservation
+        self.enable_mapping = enable_mapping
+        self.enable_dynamic_calibration = enable_dynamic_calibration
 
         self.rs_pipe = None
         self.rs_cfg = None
@@ -53,10 +63,16 @@ class ArenaRobotServiceSensorT265(ArenaRobotServiceSensor):
 
         self.rs_device = self.rs_cfg.resolve(self.rs_pipe).get_device()
         self.pose_sensor = self.rs_device.first_pose_sensor()
-        # self.pose_sensor.set_option(rs.option.enable_pose_jumping, 0)
-        # self.pose_sensor.set_option(rs.option.enable_relocalization, 0)
-        # self.pose_sensor.set_option(rs.option.enable_map_preservation, 0)
-        # self.pose_sensor.set_option(rs.option.enable_mapping, 0)
+        self.pose_sensor.set_option(rs.option.enable_pose_jumping,
+                                    int(self.enable_pose_jumping))
+        self.pose_sensor.set_option(rs.option.enable_relocalization,
+                                    int(self.enable_relocalization))
+        self.pose_sensor.set_option(rs.option.enable_map_preservation,
+                                    int(self.enable_map_preservation))
+        self.pose_sensor.set_option(rs.option.enable_mapping,
+                                    int(self.enable_mapping))
+        self.pose_sensor.set_option(rs.option.enable_dynamic_calibration,
+                                    int(self.enable_dynamic_calibration))
 
         self.rs_ctx = rs.context()
 
