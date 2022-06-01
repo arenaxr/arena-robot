@@ -91,7 +91,8 @@ setup(
         'python-periphery>=2,<3',
         'selenium>=3,<4',
         'setuptools_scm>=6.0',
-        'slam3d>=0,<1'
+        'slam3d>=0,<1',
+        'transformations==2021.6.6'
     ],
     extras_require={
         'dev': [

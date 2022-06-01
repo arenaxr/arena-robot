@@ -10,6 +10,8 @@ This source code is licensed under the BSD-3-Clause license found in the
 LICENSE file in the root directory of this source tree.
 """
 
+from .processor import ArenaRobotServiceProcessor
+from .processor.t265 import ArenaRobotServiceProcessorT265
 from .sensor import ArenaRobotServiceSensor
 from .sensor.beluga_serial import ArenaRobotServiceSensorBelugaSerial
 from .sensor.licosa_serial import ArenaRobotServiceSensorLiCosaSerial
@@ -23,5 +25,7 @@ SERVICE_TYPE_MAP = {
     "sensor_beluga_serial": ArenaRobotServiceSensorBelugaSerial,
     "sensor_licosa_serial": ArenaRobotServiceSensorLiCosaSerial,
     "sensor_t265": ArenaRobotServiceSensorT265,
-    "sensor_vl53l5cx": ArenaRobotServiceSensorVL53L5CX
+    "sensor_vl53l5cx": ArenaRobotServiceSensorVL53L5CX,
+    "processor": ArenaRobotServiceProcessor,
+    "processor_t265": ArenaRobotServiceProcessorT265
 }

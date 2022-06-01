@@ -14,6 +14,7 @@ import json
 from datetime import datetime
 
 from arena.device import Device
+from paho.mqtt.client import MQTTMessage
 
 
 class ArenaRobotService():
@@ -51,7 +52,19 @@ class ArenaRobotService():
         """Assert if this is an async service."""
         return self.async_service_val
 
-    def msg_rx(self, client, userdata, msg):
+    @staticmethod
+    def decode_payload(msg: MQTTMessage) -> dict:
+        """Decode MQTTMessage as JSON."""
+        try:
+            payload_str = msg.payload.decode("utf-8", "ignore")
+            payload = json.loads(json.loads(payload_str))
+            return payload
+        except json.JSONDecodeError as error:
+            print("Malformed payload, ignoring:")
+            print(error)
+            return None
+
+    def msg_rx(self, client, userdata, msg: MQTTMessage):
         """Receive messages."""
 
     def setup(self):

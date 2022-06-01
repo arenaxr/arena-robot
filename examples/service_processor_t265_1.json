@@ -1,0 +1,7 @@
+{
+    "service_type": "processor_t265",
+    "instance_name": "t265_1",
+    "subtopic": "pose_transformed",
+    "interval_ms": -1,
+    "sensor_t265_topic": "realm/d/myuser/mydevice/sensors/pose"
+}
