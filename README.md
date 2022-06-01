@@ -24,7 +24,7 @@ pip install -e .
 
 ### arenarobot
 
-Services that stream to MQTT may be started with the `arena-robot-service` command. See [`examples/service_vl53l5cx_lidar_1.json`](./examples/service_vl53l5cx_lidar_1.json) for a service file example. All services require the following arguments:
+Services that stream to MQTT may be started with the `arena-robot-service` command. See [`examples/service_sensor_vl53l5cx_lidar_1.json`](./examples/service_sensor_vl53l5cx_lidar_1.json) for a service file example. All services require the following arguments:
 
  - `service_type`: Required. Currently only `sensor_vl53l5cx` is supported.
  - `instance_name`: Required. The name of this running service.
