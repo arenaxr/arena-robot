@@ -28,7 +28,7 @@ Services that stream to MQTT may be started with the `arena-robot-service` comma
 
  - `service_type`: Required. Currently only `sensor_vl53l5cx` is supported.
  - `instance_name`: Required. The name of this running service.
- - `subtopic`: Required. The device subtopic to publish to. For sensors this will always be prefixed with `sensors/`.
+ - `subtopic`: Required. The device subtopic to publish to. For sensors, this will always be prefixed with `sensors/`. For processors, this will always be prefixed with `processors/`.
  - `interval_ms` For services that run repeatedly, this is the interval. Set to -1 by default, which will fire the service once. Set to 0 to fire as fast as possible. This option is ignored for async-based services.
 
 #### sensor_beluga_serial
@@ -59,6 +59,18 @@ This is an Intel T265:
  - `enable_mapping`: Optional. Defaults to False. Enable an internal map. See [librealsense docs](https://github.com/IntelRealSense/librealsense/blob/d19829788008b8e000870895a068f0c43d58895a/doc/t265.md#are-there-any-t265-specific-options).
  - `enable_map_preservation`: Optional. Defaults to False. Preserve map from the previous run.
  - `enable_dynamic_calibration`: Optional. Defaults to True. Enable dynamic calibration.
+
+#### processor_t265
+This is an Intel T265 transformation processor. This service runs initially to set up callback listeners, so the `interval_ms` should always be `-1`. The available options are:
+
+ - `sensor_t265_topic`: Required. Full path to the topic with the T265 data. Note that the processor will ignore sensor messages that are not from a `sensor_t265` instance.
+ - `sensor_t265_instance_name`: Optional. Defaults to None. Name of the T265 instance to process messages from. This is useful if multiple T265 instances are publishing to a topic and you would like to ignore all but one of them.
+ - `camera_orientation`: Optional. Defaults to 0. The orientation options are:
+   - `0`: Forward, USB port to the right
+   - `1`: Downfacing, USB port to the right
+   - `2`: 45 degree forward
+   - `3`: Upward facing, USB port to the right
+ - `scale_factor`: Optional. Defaults to 1. Scale factor to apply to body transformations.
 
 #### sensor_vl53l5cx
 This is a lidar sensor that connects through I2C and addresses by toggling its LPn pins. It additionally supports the following arguments:
