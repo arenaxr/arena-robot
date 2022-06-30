@@ -31,20 +31,25 @@ class ArenaRobotServiceProcessorT265(ArenaRobotServiceProcessor):
     def __init__(self, sensor_t265_topic: str,
                  sensor_t265_instance_name: str = None,
                  camera_orientation: int = 0,
-                 scale_factor: int = 1,
+                 scale_factor: float = 1.0,
+                 jump_threshold_translation: float = 0.1,
+                 jump_threshold_velocity: float = 20.0,
                  **kwargs):
         """Initialize the Y265 processor class."""
         self.sensor_t265_topic = sensor_t265_topic
         self.sensor_t265_instance_name = sensor_t265_instance_name
         self.camera_orientation = camera_orientation
-        self.scale_factor = scale_factor
+        self.scale_factor = float(scale_factor)
+        self.jump_threshold_translation = float(jump_threshold_translation)
+        self.jump_threshold_velocity = float(jump_threshold_velocity)
 
         if (not isinstance(self.camera_orientation, int) or
                 not 0 <= self.camera_orientation <= 3):
             raise ValueError('Unknown camera orientation!')
 
         self.fetched_once = False
-        self.prev_data = False
+        self.prev_data = None
+        self.just_initialized = False
         self.h_aeroref_t265ref = None
         self.h_t265body_aerobody = None
 
@@ -93,6 +98,7 @@ class ArenaRobotServiceProcessorT265(ArenaRobotServiceProcessor):
         self.fetched_once = True
 
         # pylint: disable=unused-argument
+        # pylint: disable=too-many-locals
         def process_t265(client, userdata, msg: MQTTMessage):
             """Process a T265 sensor message."""
             payload = self.decode_payload(msg)
@@ -110,6 +116,16 @@ class ArenaRobotServiceProcessorT265(ArenaRobotServiceProcessor):
                     self.sensor_t265_instance_name):
                 return
 
+            if ("status" in payload["msg"] and
+                    payload["msg"]["status"] == "initialized"):
+                print("Detected T265 sensor initialization")
+                self.just_initialized = True
+
+            if "data" not in payload["msg"]:
+                print("Skipping missing data for",
+                      payload["device_instance_name"],
+                      payload["msg"])
+                return
             data = payload["msg"]["data"]
 
             # Skip errors
@@ -127,6 +143,8 @@ class ArenaRobotServiceProcessorT265(ArenaRobotServiceProcessor):
             translation = pose["translation"]
             velocity = pose["velocity"]
 
+            # Source:
+            # https://discuss.ardupilot.org/t/integration-of-ardupilot-and-vio-tracking-camera-part-4-non-ros-bridge-to-mavlink-in-python/44001/45
             # In transformations, Quaternions w+ix+jy+kz are represented as
             # [w, x, y, z]!
             h_t265_t265body = quaternion_matrix([
@@ -149,17 +167,58 @@ class ArenaRobotServiceProcessorT265(ArenaRobotServiceProcessor):
             v_aeroref_aerobody[2][3] = velocity["z"]
             v_aeroref_aerobody = self.h_aeroref_t265ref.dot(v_aeroref_aerobody)
 
+            # Check for pose jump
+            if self.prev_data is not None:
+                prev_translation = self.prev_data["pose"]["translation"]
+                prev_velocity = self.prev_data["pose"]["velocity"]
+                delta_translation = [
+                    translation["x"] - prev_translation["x"],
+                    translation["y"] - prev_translation["y"],
+                    translation["z"] - prev_translation["z"]
+                ]
+                delta_velocity = [
+                    velocity["x"] - prev_velocity["x"],
+                    velocity["y"] - prev_velocity["y"],
+                    velocity["z"] - prev_velocity["z"]
+                ]
+                delta_translation_norm = np.linalg.norm(delta_translation)
+                delta_velocity_norm = np.linalg.norm(delta_velocity)
+
+                # Pose jump is indicated when position changes abruptly. The
+                # behavior is not well documented yet (as of
+                # librealsense 2.34.0)
+                jump_detected_translation = bool(
+                    delta_translation_norm > self.jump_threshold_translation
+                )
+                jump_detected_velocity = bool(
+                    delta_velocity_norm > self.jump_threshold_velocity
+                )
+            else:
+                jump_detected_translation = False
+                jump_detected_velocity = False
+                delta_translation_norm = 0.0
+                delta_velocity_norm = 0.0
+
             out = {
                 "h_t265_t265body": h_t265_t265body,
                 "h_aeroref_aerobody": h_aeroref_aerobody,
-                "v_aeroref_aerobody": v_aeroref_aerobody
+                "v_aeroref_aerobody": v_aeroref_aerobody,
+                "jump_translation_detected": jump_detected_translation,
+                "jump_velocity_detected": jump_detected_velocity,
+                "delta_translation_norm": delta_translation_norm,
+                "delta_velocity_norm": delta_velocity_norm,
+                "just_initialized": self.just_initialized
             }
-            self.prev_data = out
+            self.prev_data = {
+                "pose": pose,
+                "out": out
+            }
             serializable_out = loads(dumps(
                 out,
                 cls=TransformedT265PoseJSONEncoder
             ))
             self.publish({"data": serializable_out})
+            self.just_initialized = False
 
         self.device.message_callback_add(self.sensor_t265_topic, process_t265)
 

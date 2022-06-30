@@ -31,6 +31,12 @@ Services that stream to MQTT may be started with the `arena-robot-service` comma
  - `subtopic`: Required. The device subtopic to publish to. For sensors, this will always be prefixed with `sensors/`. For processors, this will always be prefixed with `processors/`.
  - `interval_ms` For services that run repeatedly, this is the interval. Set to -1 by default, which will fire the service once. Set to 0 to fire as fast as possible. This option is ignored for async-based services.
 
+A service can be run with the `arenaxr.org` instance of ARENA with:
+```bash
+MQTTH=mqtt.arenaxr.org DEVICE=mydevicename arena-robot-service my_service.json
+```
+A complete set of example services may be found in the [`examples`](./examples/) directory.
+
 #### sensor_beluga_serial
 This is a [Beluga](https://github.com/WiseLabCMU/Beluga) UWB sensor connected via serial:
 
@@ -71,6 +77,8 @@ This is an Intel T265 transformation processor. This service runs initially to s
    - `2`: 45 degree forward
    - `3`: Upward facing, USB port to the right
  - `scale_factor`: Optional. Defaults to 1. Scale factor to apply to body transformations.
+ - `jump_threshold_translation`: Optional. Defaults to 0.1. Position jump detection threshold in meters. This value should be relative to how frequent is the position data is obtained (200Hz for the T265).
+ - `jump_threshold_velocity`: Optional. Defaults to 20. Velocity jump detection threshold in meters/second. This value should be relative to how frequent is the velocity data is obtained (200Hz for the T265).
 
 #### sensor_vl53l5cx
 This is a lidar sensor that connects through I2C and addresses by toggling its LPn pins. It additionally supports the following arguments:
@@ -86,7 +94,7 @@ After installing the repo, you should now have the `arena-video-call-chrome` com
 
 The first argument sets the surface that the video should be mapped to. For example, to map to an object called `avideobox`:
 ```bash
-MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideobox
+MQTTH=mqtt.arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideobox
 ```
 
 ### licosa_py

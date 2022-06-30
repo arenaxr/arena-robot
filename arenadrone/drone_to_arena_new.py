@@ -393,11 +393,11 @@ else:
 arena_attitude = [0, 0, 0]
 arena_batt = 0
 if enable_arena:
-    scene = Scene(host="arenaxr.org", scene="ARENA-drone", realm="realm", namespace="pnaseck")
+    scene = Scene(host="mqtt.arenaxr.org", scene="ARENA-drone", realm="realm", namespace="pnaseck")
     arena_drone = Box(object_id="arena_drone", depth=0.4, width=0.4, height=0.07, position=Position(0, 0, 0), scale=Scale(1, 1, 1), color=(128, 0, 172), material={"opacity":0.5})
     scene.add_object(arena_drone)
 
-# device = Device(host="arenaxr.org", device="drone02", debug=False)
+# device = Device(host="mqtt.arenaxr.org", device="drone02", debug=False)
 # CUSTOM_TOPIC_lidar = f"{device.realm}/d/{device.namespace}/{device.device}/sensors/lidar"
 # CUSTOM_TOPIC_waypoints = f"{device.realm}/d/{device.namespace}/{device.device}/waypoints"
 

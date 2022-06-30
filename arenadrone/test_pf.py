@@ -16,7 +16,7 @@ UWB_BIAS = 0.2
 UWB_STD = 0.1
 IN_TO_METER = 0.0254
 RAD_TO_DEG = 180 / pi
-#scene = Scene(host="arenaxr.org", scene="test0", realm="realm", namespace="astrasse")
+#scene = Scene(host="mqtt.arenaxr.org", scene="test0", realm="realm", namespace="astrasse")
 #box = Box(object_id="my_box", position=Position(0, 0, 0), scale=Scale(0.3, 1.8, 0.3), color=(255, 0, 0))
 #text = Text(text="User", position=Position(0, 2, 0), scale=Scale(3,3,3), parent=box)
 pf = ParticleFilterLoc()
