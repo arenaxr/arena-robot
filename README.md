@@ -71,6 +71,8 @@ This is an Intel T265 transformation processor. This service runs initially to s
    - `2`: 45 degree forward
    - `3`: Upward facing, USB port to the right
  - `scale_factor`: Optional. Defaults to 1. Scale factor to apply to body transformations.
+ - `jump_threshold_translation`: Optional. Defaults to 0.1. Position jump detection threshold in meters. This value should be relative to how frequent is the position data is obtained (200Hz for the T265).
+ - `jump_threshold_velocity`: Optional. Defaults to 20. Velocity jump detection threshold in meters/second. This value should be relative to how frequent is the velocity data is obtained (200Hz for the T265).
 
 #### sensor_vl53l5cx
 This is a lidar sensor that connects through I2C and addresses by toggling its LPn pins. It additionally supports the following arguments:
