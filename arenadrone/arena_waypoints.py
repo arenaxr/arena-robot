@@ -3,7 +3,7 @@ from enum import Enum, auto
 
 from arena import *
 
-scene = Scene(host="arenaxr.org", scene="ARENA-drone", realm="realm", namespace="pnaseck")
+scene = Scene(host="mqtt.arenaxr.org", scene="ARENA-drone", realm="realm", namespace="pnaseck")
 
 HEIGHT = 1.5
 positions = [

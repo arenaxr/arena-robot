@@ -50,7 +50,7 @@ def euler_from_quaternion(x, y, z, w):
 
   return roll_x, pitch_y, yaw_z
 
-scene = Scene(host="arenaxr.org", scene="test0", realm="realm", namespace="astrasse")
+scene = Scene(host="mqtt.arenaxr.org", scene="test0", realm="realm", namespace="astrasse")
 
 box = Icosahedron(object_id="my_box", position=Position(0, 0, 0), scale=Scale(0.5, 0.5, 0.5), color=(255, 255, 0))
 text = Text(text="User", position=Position(0, 2, 0), scale=Scale(3,3,3), parent=box)

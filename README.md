@@ -88,7 +88,7 @@ After installing the repo, you should now have the `arena-video-call-chrome` com
 
 The first argument sets the surface that the video should be mapped to. For example, to map to an object called `avideobox`:
 ```bash
-MQTTH=arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideobox
+MQTTH=mqtt.arenaxr.org NAMESPACE=namespace SCENE=scene arena-video-call-chrome avideobox
 ```
 
 ### licosa_py
