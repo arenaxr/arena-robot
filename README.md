@@ -31,6 +31,12 @@ Services that stream to MQTT may be started with the `arena-robot-service` comma
  - `subtopic`: Required. The device subtopic to publish to. For sensors, this will always be prefixed with `sensors/`. For processors, this will always be prefixed with `processors/`.
  - `interval_ms` For services that run repeatedly, this is the interval. Set to -1 by default, which will fire the service once. Set to 0 to fire as fast as possible. This option is ignored for async-based services.
 
+A service can be run with the `arenaxr.org` instance of ARENA with:
+```bash
+MQTTH=mqtt.arenaxr.org DEVICE=mydevicename arena-robot-service my_service.json
+```
+A complete set of example services may be found in the [`examples`](./examples/) directory.
+
 #### sensor_beluga_serial
 This is a [Beluga](https://github.com/WiseLabCMU/Beluga) UWB sensor connected via serial:
 
