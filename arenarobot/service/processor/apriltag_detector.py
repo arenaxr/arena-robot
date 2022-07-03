@@ -17,7 +17,19 @@ from paho.mqtt.client import MQTTMessage
 from transformations import euler_matrix, quaternion_matrix
 from dt_apriltags import Detector
 from arenarobot.service.processor import ArenaRobotServiceProcessor
-from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Rotation as Ro
+from filterpy.kalman import predict, update
+from filterpy.common import Q_discrete_white_noise
+import time
+
+HORIZONTAL_RESOLUTION = 3
+VERTICAL_RESOLUTION = 4
+        
+FLIP_MATRIX = np.array([[1,  0,  0, 0],
+                        [0, -1,  0, 0],
+                        [0,  0, -1, 0],
+                        [0,  0,  0, 1]], dtype=float)
+
 
 # pylint: disable=too-many-instance-attributes
 class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
@@ -27,30 +39,31 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
 
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-statements
-    def __init__(self, processor_apriltag_detector_topic: str,
-                 processor_apriltag_detector_instance_name: str = None,
-                 scale_factor: int = 1,
+    def __init__(self,
                  camera_resolution = None,
                  camera_params = None,
                  dist_params = None,
                  apriltag_family = None,
                  apriltag_locations = None,
+                 tagSize = 0.15,
+                 cap = cv2.VideoCapture(0),
                  **kwargs):
         """Initialize the apriltag detector processor class."""
-        self.processor_apriltag_detector_topic = processor_apriltag_detector_topic
-        self.processor_apriltag_detector_instance_name = processor_apriltag_detector_instance_name
-
-        self.prev_data         = None                  # saving data from previous frame
-        self.cap               = None                  # video capture
+        
+        self.x                 = [0, 0, 0, 0, 0, 0]    # filter state estimate
+        self.P = np.diag([500, 100, 500, 100, 500, 100]) # filter state covariances
+        self.prev_translation  = [0, 0, 0]
+        self.prev_time         = time.time()           # previous time measurement
+        self.cap               = cap            # video capture
         self.camera_resolution = camera_resolution     # camera resolution [width, height] (pixels)
         self.mtx               = None                  # camera matrix
         self.params            = camera_params         # camera matrix parameters fx, fy, cx, cy
         self.dist_params       = np.array(dist_params) # distortion parameters
         self.at_detector       = None                  # apriltag detector object
-        self.flip_matrix       = None                  # flip matrix
         self.apriltag_family   = apriltag_family       # tag family
         self.apriltags         = apriltag_locations    # known apriltag poses (world coordinates in meters)
-
+        self.tagSize = tagSize
+        
         processor_type = (ArenaRobotServiceProcessorApriltagDetector
                           .DEVICE_INSTANCE_PROCESSOR_TYPE)
 
@@ -66,12 +79,12 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         # Initialize camera using /dev/video0 (works for USB cameras 
         # but not Arducam-type cameras because the Raspberry Pi
         # Foundation is sooooo silly)
-        self.cap = cv2.VideoCapture(0)
+        # self.cap = cv2.VideoCapture(0)
 
         # subsample to increasing processing speed
         # note: selected resolution affects camera parameters
-        self.cap.set(3, self.camera_resolution[0])
-        self.cap.set(4, self.camera_resolution[1])
+        self.cap.set(HORIZONTAL_RESOLUTION, self.camera_resolution[0])
+        self.cap.set(VERTICAL_RESOLUTION, self.camera_resolution[1])
 
         # camera matrix
         self.mtx = np.array([[self.params[0], 0.000000000000, self.params[2]],
@@ -88,11 +101,6 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                                     decode_sharpening=0.25,
                                     debug=0)
 
-        self.flip_matrix = np.array([[1,  0,  0, 0],
-                                     [0, -1,  0, 0],
-                                     [0,  0, -1, 0],
-                                     [0,  0,  0, 1]], dtype=float)
-
         super().setup()
 
     '''
@@ -106,19 +114,19 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     def fetch(self):
         # get grayscale frame for apriltag detection
         ret, frame = self.cap.read()
-        im_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        grayImage = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         # undistort frame
-        h, w = im_gray.shape[:2]
-        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist_params, (w,h), 1, (w,h))
-        dst = cv2.undistort(im_gray, self.mtx, self.dist_params, None, newcameramtx)
+        h, w = grayImage.shape[:2]
+        newCameraMatrix, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist_params, (w,h), 1, (w,h))
+        dst = cv2.undistort(grayImage, self.mtx, self.dist_params, None, newCameraMatrix)
         
         # detect apriltags
-        tags = self.at_detector.detect(dst, estimate_tag_pose=True, camera_params=self.params, tag_size=0.15)
+        tags = self.at_detector.detect(dst, estimate_tag_pose=True, camera_params=self.params, tag_size=self.tagSize)
         pose        = None
         translation = None
+        filtered_translation = None
         rotation    = None
-        
         # TODO: handle multiple apriltags
         if len(tags) > 0:
             Rot = tags[0].pose_R
@@ -136,38 +144,78 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
             
             if str(tags[0].tag_id) in self.apriltags: 
                 tag_M = self.apriltags[str(tags[0].tag_id)]
-                M = self.flip_matrix @ M @ self.flip_matrix
+                M = FLIP_MATRIX @ M @ FLIP_MATRIX
                 pose = tag_M @ np.linalg.inv(M)
                 # print(pose)
                 translation = [pose[i][3] for i in range(len(pose))]
                 rotation = np.array([[pose[0][0], pose[0][1], pose[0][2]],
                                      [pose[1][0], pose[1][1], pose[1][2]],
                                      [pose[2][0], pose[2][1], pose[2][2]]], dtype=float)
-                rotation = R.from_matrix(rotation)
+                rotation = Ro.from_matrix(rotation)
                 rotation = rotation.as_quat()
             else:
-                pose        = None
-                translation = None
-                rotation    = None
-                # print('Unknown Apriltag') 
+                # pose        = None
+                # translation = None
+                # rotation    = None
+                print('Unknown Apriltag')
+            
+            '''
+            Kalman Filter
+            '''
+            currTime = time.time()
+            dt = currTime - self.prev_time
+            self.prev_time = currTime
+
+            # translation measurements
+            z = [0] * 3
+            z[0] = translation[0]
+            z[1] = translation[1]
+            z[2] = translation[2]
+
+            # measurement covariance
+            R = np.diag([0.125, 0.125, 0.125])
+
+            # state transition matrix
+            F = np.array([[ 1, dt,  0,  0,  0,  0 ],
+                          [ 0,  1,  0,  0,  0,  0 ],
+                          [ 0,  0,  1, dt,  0,  0 ],
+                          [ 0,  0,  0,  1,  0,  0 ],
+                          [ 0,  0,  0,  0,  1, dt ],
+                          [ 0,  0,  0,  0,  0,  1 ]], dtype=float)
+
+            # process noise covariance
+            Q = Q_discrete_white_noise(dim=2, dt=dt, var = 0.175, block_size=3)
+
+            # measurement function
+            H = np.array([[1, 0, 0, 0, 0, 0],
+                          [0, 0, 1, 0, 0, 0], 
+                          [0, 0, 0, 0, 1, 0]], dtype=float)
+
+            # FilterPy functions
+            self.x, self.P = predict(self.x, self.P, F, Q, B=0.0)
+            self.x, self.P = update(self.x, self.P, z, R, H)
+            
+            # self.x is the state
+            filtered_translation = [self.x[0], self.x[2], self.x[4]] 
         out = {
             "pose":        pose,
             "translation": translation,
+            "filtered_translation": filtered_translation,
             "rotation":    rotation
         }
-        self.prev_data = out
+        print(out)
 
         serializable_out = loads(dumps(
             out,
-            cls=TransformedApriltagDetectorPoseJSONEncoder
+            cls=TransformedApriltagDetectorJSONEncoder
         ))
 
         # this publishes to subtopic (self.topic)
         self.publish({"data": serializable_out})
 
-        # print(self.topic)
+        print(self.topic)
 
-class TransformedApriltagDetectorPoseJSONEncoder(JSONEncoder):
+class TransformedApriltagDetectorJSONEncoder(JSONEncoder):
     """JSON Encoder helper for Apriltag Detector transformed attributes."""
 
     def default(self, o):

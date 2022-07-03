@@ -1,9 +1,7 @@
 {
+    "instance_name": "apriltag_detector",
+    "interval_ms": 30,
 	"service_type": "processor_apriltag_detector",
-	"instance_name": "apriltag_detector",
-	"subtopic": "pose_transformed",
-	"interval_ms": 30,
-	"processor_apriltag_detector_topic": "realm/d/myuser/mydevice/sensors/pose",
     "camera_resolution": [1280, 720],
     "camera_params": [1111.67165, 1112.40929, 643.010899, 354.325008],
     "dist_params": [0.208289234, -0.554275524, -0.00345210226, -0.000257933517, 0.356608815],
