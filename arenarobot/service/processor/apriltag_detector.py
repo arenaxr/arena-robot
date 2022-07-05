@@ -18,8 +18,6 @@ from transformations import euler_matrix, quaternion_matrix
 from dt_apriltags import Detector
 from arenarobot.service.processor import ArenaRobotServiceProcessor
 from scipy.spatial.transform import Rotation as Ro
-from filterpy.kalman import predict, update
-from filterpy.common import Q_discrete_white_noise
 import time
 
 HORIZONTAL_RESOLUTION = 3
@@ -40,29 +38,37 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-statements
     def __init__(self,
-                 camera_resolution:  list[int] = None,
-                 camera_params:      list[int] = None,
-                 dist_params:        list[int] = None,
-                 apriltag_family:    str       = None,
-                 apriltag_locations: dict      = None,
-                 tagSize:            float     = 0.15,
-                 cap = cv2.VideoCapture(0),
+                 camera_resolution: list[int],
+                 camera_params: list[int],
+                 dist_params: list[int],
+                 apriltag_family: str,
+                 apriltag_locations: dict,
+                 numDetectorThreads: int = 4,
+                 quadDecimate: float = 1.0,
+                 quadSigma: float = 0.0,
+                 refineEdges: int = 1,
+                 decodeSharpening: float = 0.25,
+                 tagSize: float = 0.15,
+                 cap: cv2.VideoCapture = cv2.VideoCapture(0),
                  **kwargs):
         """Initialize the apriltag detector processor class."""
         
-        self.x                 = [0, 0, 0, 0, 0, 0]    # filter state estimate
-        self.P = np.diag([500, 100, 500, 100, 500, 100]) # filter state covariances
-        self.prev_translation  = [0, 0, 0]
-        self.prev_time         = time.time()           # previous time measurement
-        self.cap               = cap            # video capture
-        self.camera_resolution = camera_resolution     # camera resolution [width, height] (pixels)
-        self.mtx               = None                  # camera matrix
-        self.params            = camera_params         # camera matrix parameters fx, fy, cx, cy
-        self.dist_params       = np.array(dist_params) # distortion parameters
-        self.at_detector       = None                  # apriltag detector object
-        self.apriltag_family   = apriltag_family       # tag family
-        self.apriltags         = apriltag_locations    # known apriltag poses (world coordinates in meters)
-        self.tagSize = tagSize
+        self.cap                = cap                   # video capture
+        self.camera_resolution  = camera_resolution     # camera resolution [width, height] (pixels)
+        self.params             = camera_params         # camera matrix parameters fx, fy, cx, cy
+        self.dist_params        = np.array(dist_params) # distortion parameters
+       
+        self.apriltag_family    = apriltag_family       # tag family
+        self.numDetectorThreads = numDetectorThreads
+        self.quadDecimate       = quadDecimate
+        self.quadSigma          = quadSigma
+        self.refineEdges        = refineEdges
+        self.decodeSharpening   = decodeSharpening
+        self.tagSize            = tagSize
+        
+        self.apriltags          = apriltag_locations    # known apriltag poses (world coordinates in meters)
+        self.at_detector = None
+        self.mtx = None
         
         processor_type = (ArenaRobotServiceProcessorApriltagDetector
                           .DEVICE_INSTANCE_PROCESSOR_TYPE)
@@ -76,11 +82,6 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     Set up Apriltag Detector object and define a bunch of stuff
     '''
     def setup(self):
-        # Initialize camera using /dev/video0 (works for USB cameras 
-        # but not Arducam-type cameras because the Raspberry Pi
-        # Foundation is sooooo silly)
-        # self.cap = cv2.VideoCapture(0)
-
         # subsample to increasing processing speed
         # note: selected resolution affects camera parameters
         self.cap.set(HORIZONTAL_RESOLUTION, self.camera_resolution[0])
@@ -94,19 +95,18 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         # apriltag detector
         self.at_detector = Detector(searchpath=['apriltags'],
                                     families=self.apriltag_family,
-                                    nthreads=4,
-                                    quad_decimate=2.0,
-                                    quad_sigma=0.0,
-                                    refine_edges=1,
-                                    decode_sharpening=0.25,
-                                    debug=0)
+                                    nthreads=self.numDetectorThreads,
+                                    quad_decimate=self.quadDecimate, # set to 2.0 for faster detections
+                                    quad_sigma=self.quadSigma,
+                                    refine_edges=self.refineEdges,
+                                    decode_sharpening=self.decodeSharpening,
+                                    debug=0) # debug=1 saves images, don't use
 
         super().setup()
 
     '''
     Capture a camera frame, detect apriltags, calculate pose, and
-    publish pose information to MQTT topic: realm/d/<user>/<device>/processors/pose_transformed
-    TODO: Implement Kalman Filter
+    publish pose information to MQTT topic: realm/d/<user>/<device>/processors/apriltag_pose
     TODO: figure out how this works with different users/devices (not just jpedraza/john-pi)
           - so the device for the topic is just specified when running arena-robot-service
     TODO: handle getting wrong representation (apriltag solver has two possible solutions)

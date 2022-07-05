@@ -7,6 +7,12 @@
     "camera_params": [1111.67165, 1112.40929, 643.010899, 354.325008],
     "dist_params": [0.208289234, -0.554275524, -0.00345210226, -0.000257933517, 0.356608815],
     "apriltag_family": "tag36h11",
+    "tagSize": 0.15,
+    "numDetectorThreads": 4,
+    "quadDecimate": 1.0,
+    "quadSigma": 0.0,
+    "refineEdges": 1,
+    "decodeSharpening": 0.25,
     "apriltag_locations": 
         {
          "0":  [[ 1,  0,  0,  0.0000], 
