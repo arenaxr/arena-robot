@@ -105,6 +105,11 @@ setup(
         ],
         'realsense': [
             'pyrealsense2>=2,<3'
+        ],
+        'apriltag_detector': [
+            'dt-apriltags>=3',
+            'scipy>=1.8',
+            'opencv-python>=4.6'
         ]
     }
 )
