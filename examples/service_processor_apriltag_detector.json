@@ -1,5 +1,6 @@
 {
     "instance_name": "apriltag_detector",
+    "subtopic": "apriltag_pose",
     "interval_ms": 30,
 	"service_type": "processor_apriltag_detector",
     "camera_resolution": [1280, 720],

@@ -13,6 +13,7 @@ LICENSE file in the root directory of this source tree.
 from .processor import ArenaRobotServiceProcessor
 from .processor.t265 import ArenaRobotServiceProcessorT265
 from .processor.apriltag_detector import ArenaRobotServiceProcessorApriltagDetector
+from .processor.filter import ArenaRobotServiceProcessorFilter
 from .sensor import ArenaRobotServiceSensor
 from .sensor.beluga_serial import ArenaRobotServiceSensorBelugaSerial
 from .sensor.licosa_serial import ArenaRobotServiceSensorLiCosaSerial
@@ -29,5 +30,6 @@ SERVICE_TYPE_MAP = {
     "sensor_vl53l5cx": ArenaRobotServiceSensorVL53L5CX,
     "processor": ArenaRobotServiceProcessor,
     "processor_t265": ArenaRobotServiceProcessorT265,
-    "processor_apriltag_detector": ArenaRobotServiceProcessorApriltagDetector
+    "processor_apriltag_detector": ArenaRobotServiceProcessorApriltagDetector,
+    "processor_filter": ArenaRobotServiceProcessorFilter
 }

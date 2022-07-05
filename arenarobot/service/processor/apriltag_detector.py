@@ -40,12 +40,12 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-statements
     def __init__(self,
-                 camera_resolution = None,
-                 camera_params = None,
-                 dist_params = None,
-                 apriltag_family = None,
-                 apriltag_locations = None,
-                 tagSize = 0.15,
+                 camera_resolution:  list[int] = None,
+                 camera_params:      list[int] = None,
+                 dist_params:        list[int] = None,
+                 apriltag_family:    str       = None,
+                 apriltag_locations: dict      = None,
+                 tagSize:            float     = 0.15,
                  cap = cv2.VideoCapture(0),
                  **kwargs):
         """Initialize the apriltag detector processor class."""
@@ -108,8 +108,11 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     publish pose information to MQTT topic: realm/d/<user>/<device>/processors/pose_transformed
     TODO: Implement Kalman Filter
     TODO: figure out how this works with different users/devices (not just jpedraza/john-pi)
+          - so the device for the topic is just specified when running arena-robot-service
     TODO: handle getting wrong representation (apriltag solver has two possible solutions)
     TODO: handle multiple apriltags in frame at same time
+    TODO: cap.release()?
+    TODO: add among us support
     '''
     def fetch(self):
         # get grayscale frame for apriltag detection
@@ -123,10 +126,7 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         
         # detect apriltags
         tags = self.at_detector.detect(dst, estimate_tag_pose=True, camera_params=self.params, tag_size=self.tagSize)
-        pose        = None
-        translation = None
-        filtered_translation = None
-        rotation    = None
+        pose = None
         # TODO: handle multiple apriltags
         if len(tags) > 0:
             Rot = tags[0].pose_R
@@ -146,62 +146,13 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                 tag_M = self.apriltags[str(tags[0].tag_id)]
                 M = FLIP_MATRIX @ M @ FLIP_MATRIX
                 pose = tag_M @ np.linalg.inv(M)
-                # print(pose)
-                translation = [pose[i][3] for i in range(len(pose))]
-                rotation = np.array([[pose[0][0], pose[0][1], pose[0][2]],
-                                     [pose[1][0], pose[1][1], pose[1][2]],
-                                     [pose[2][0], pose[2][1], pose[2][2]]], dtype=float)
-                rotation = Ro.from_matrix(rotation)
-                rotation = rotation.as_quat()
+                # rotation = Ro.from_matrix(rotation)
+                # rotation = rotation.as_quat()
             else:
-                # pose        = None
-                # translation = None
-                # rotation    = None
                 print('Unknown Apriltag')
             
-            '''
-            Kalman Filter
-            '''
-            currTime = time.time()
-            dt = currTime - self.prev_time
-            self.prev_time = currTime
-
-            # translation measurements
-            z = [0] * 3
-            z[0] = translation[0]
-            z[1] = translation[1]
-            z[2] = translation[2]
-
-            # measurement covariance
-            R = np.diag([0.125, 0.125, 0.125])
-
-            # state transition matrix
-            F = np.array([[ 1, dt,  0,  0,  0,  0 ],
-                          [ 0,  1,  0,  0,  0,  0 ],
-                          [ 0,  0,  1, dt,  0,  0 ],
-                          [ 0,  0,  0,  1,  0,  0 ],
-                          [ 0,  0,  0,  0,  1, dt ],
-                          [ 0,  0,  0,  0,  0,  1 ]], dtype=float)
-
-            # process noise covariance
-            Q = Q_discrete_white_noise(dim=2, dt=dt, var = 0.175, block_size=3)
-
-            # measurement function
-            H = np.array([[1, 0, 0, 0, 0, 0],
-                          [0, 0, 1, 0, 0, 0], 
-                          [0, 0, 0, 0, 1, 0]], dtype=float)
-
-            # FilterPy functions
-            self.x, self.P = predict(self.x, self.P, F, Q, B=0.0)
-            self.x, self.P = update(self.x, self.P, z, R, H)
-            
-            # self.x is the state
-            filtered_translation = [self.x[0], self.x[2], self.x[4]] 
         out = {
-            "pose":        pose,
-            "translation": translation,
-            "filtered_translation": filtered_translation,
-            "rotation":    rotation
+            "pose":        pose
         }
         print(out)
 
@@ -212,8 +163,6 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
 
         # this publishes to subtopic (self.topic)
         self.publish({"data": serializable_out})
-
-        print(self.topic)
 
 class TransformedApriltagDetectorJSONEncoder(JSONEncoder):
     """JSON Encoder helper for Apriltag Detector transformed attributes."""
