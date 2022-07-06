@@ -1,5 +1,0 @@
-{
-    "instance_name": "filter",
-    "interval_ms": 30,
-	"service_type": "processor_filter"
-}
