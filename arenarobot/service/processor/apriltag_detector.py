@@ -20,8 +20,8 @@ from arenarobot.service.processor import ArenaRobotServiceProcessor
 from scipy.spatial.transform import Rotation as Ro
 import time
 
-HORIZONTAL_RESOLUTION = 3
-VERTICAL_RESOLUTION = 4
+HORIZONTAL_RESOLUTION_INDEX = 3
+VERTICAL_RESOLUTION_INDEX = 4
         
 FLIP_MATRIX = np.array([[1,  0,  0, 0],
                         [0, -1,  0, 0],
@@ -43,28 +43,28 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                  dist_params: list[int],
                  apriltag_family: str,
                  apriltag_locations: dict,
-                 numDetectorThreads: int = 4,
-                 quadDecimate: float = 1.0,
-                 quadSigma: float = 0.0,
-                 refineEdges: int = 1,
-                 decodeSharpening: float = 0.25,
-                 tagSize: float = 0.15,
-                 cap: cv2.VideoCapture = cv2.VideoCapture(0),
+                 video_file: str,
+                 num_detector_threads: int = 4,
+                 quad_decimate: float = 1.0,
+                 quad_sigma: float = 0.0,
+                 refine_edges: int = 1,
+                 decode_sharpening: float = 0.25,
+                 tag_size: float = 0.15,
                  **kwargs):
         """Initialize the apriltag detector processor class."""
         
-        self.cap                = cap                   # video capture
+        self.cap                = video_file            # video capture
         self.camera_resolution  = camera_resolution     # camera resolution [width, height] (pixels)
         self.params             = camera_params         # camera matrix parameters fx, fy, cx, cy
         self.dist_params        = np.array(dist_params) # distortion parameters
        
-        self.apriltag_family    = apriltag_family       # tag family
-        self.numDetectorThreads = numDetectorThreads
-        self.quadDecimate       = quadDecimate
-        self.quadSigma          = quadSigma
-        self.refineEdges        = refineEdges
-        self.decodeSharpening   = decodeSharpening
-        self.tagSize            = tagSize
+        self.apriltag_family      = apriltag_family 
+        self.num_detector_threads = num_detector_threads
+        self.quad_decimate       = quad_decimate
+        self.quad_sigma          = quad_sigma
+        self.refine_edges        = refine_edges
+        self.decode_sharpening   = decode_sharpening
+        self.tag_size            = tag_size
         
         self.apriltags          = apriltag_locations    # known apriltag poses (world coordinates in meters)
         self.at_detector = None
@@ -82,10 +82,12 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     Set up Apriltag Detector object and define a bunch of stuff
     '''
     def setup(self):
+        self.cap = cv2.VideoCapture(self.cap)
+
         # subsample to increasing processing speed
         # note: selected resolution affects camera parameters
-        self.cap.set(HORIZONTAL_RESOLUTION, self.camera_resolution[0])
-        self.cap.set(VERTICAL_RESOLUTION, self.camera_resolution[1])
+        self.cap.set(HORIZONTAL_RESOLUTION_INDEX, self.camera_resolution[0])
+        self.cap.set(VERTICAL_RESOLUTION_INDEX, self.camera_resolution[1])
 
         # camera matrix
         self.mtx = np.array([[self.params[0], 0.000000000000, self.params[2]],
@@ -95,11 +97,11 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         # apriltag detector
         self.at_detector = Detector(searchpath=['apriltags'],
                                     families=self.apriltag_family,
-                                    nthreads=self.numDetectorThreads,
-                                    quad_decimate=self.quadDecimate, # set to 2.0 for faster detections
-                                    quad_sigma=self.quadSigma,
-                                    refine_edges=self.refineEdges,
-                                    decode_sharpening=self.decodeSharpening,
+                                    nthreads=self.num_detector_threads,
+                                    quad_decimate=self.quad_decimate, # set to 2.0 for faster detections
+                                    quad_sigma=self.quad_sigma,
+                                    refine_edges=self.refine_edges,
+                                    decode_sharpening=self.decode_sharpening,
                                     debug=0) # debug=1 saves images, don't use
 
         super().setup()
@@ -117,17 +119,21 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     def fetch(self):
         # get grayscale frame for apriltag detection
         ret, frame = self.cap.read()
-        grayImage = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        if not ret:
+            print('read() failed')
+            return
+
+        gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
         # undistort frame
-        h, w = grayImage.shape[:2]
-        newCameraMatrix, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist_params, (w,h), 1, (w,h))
-        dst = cv2.undistort(grayImage, self.mtx, self.dist_params, None, newCameraMatrix)
+        h, w = gray_image.shape[:2]
+        new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist_params, (w,h), 1, (w,h))
+        dst = cv2.undistort(gray_image, self.mtx, self.dist_params, None, new_camera_matrix)
         
         # detect apriltags
-        tags = self.at_detector.detect(dst, estimate_tag_pose=True, camera_params=self.params, tag_size=self.tagSize)
+        tags = self.at_detector.detect(dst, estimate_tag_pose=True, camera_params=self.params, tag_size=self.tag_size)
+        
         pose = None
-        # TODO: handle multiple apriltags
         if len(tags) > 0:
             Rot = tags[0].pose_R
             T = tags[0].pose_t
@@ -146,15 +152,13 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                 tag_M = self.apriltags[str(tags[0].tag_id)]
                 M = FLIP_MATRIX @ M @ FLIP_MATRIX
                 pose = tag_M @ np.linalg.inv(M)
-                # rotation = Ro.from_matrix(rotation)
-                # rotation = rotation.as_quat()
             else:
                 print('Unknown Apriltag')
             
         out = {
-            "pose":        pose
+            "pose": pose,
         }
-        print(out)
+        # print(out)
 
         serializable_out = loads(dumps(
             out,
