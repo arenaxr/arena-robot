@@ -11,8 +11,8 @@ LICENSE file in the root directory of this source tree.
 """
 
 from json import JSONEncoder, dumps, loads
-
 from typing import List
+
 import cv2
 import numpy as np
 from arenarobot.service.processor import ArenaRobotServiceProcessor
@@ -29,10 +29,11 @@ FLIP_MATRIX = np.array([[1,  0,  0, 0],
 
 def detection2matrix(translation, rotation):
     """
-    reformat detected translation and rotation into 4x4 matrix
-    upper-left 3x3 matrix is the rotation matrix
-    rightmost column is translation vector (x, y, z, top to bottom)
-    bottom row is [0, 0, 0, 1] to help with transformations
+    Reformat detected translation and rotation into 4x4 matrix.
+
+    upper-left 3x3 matrix is the rotation matrix.
+    rightmost column is translation vector (x, y, z, top to bottom).
+    bottom row is [0, 0, 0, 1] to help with transformations.
     """
     translation = np.array([[t[0] for t in translation]])
     temp_mtx = np.concatenate((rotation, translation.T),
@@ -65,7 +66,6 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                  tag_size: float = 0.15,
                  **kwargs):
         """Initialize the apriltag detector processor class."""
-
         # video_capture
         self.cap = video_file
 
@@ -104,7 +104,7 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         )
 
     def setup(self):
-        """Set up video capture and Apriltag Detector object"""
+        """Set up video capture and Apriltag Detector object."""
         self.cap = cv2.VideoCapture(self.cap)
 
         # subsample to increasing processing speed
@@ -141,8 +141,9 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     # Planned: cap.release()?
     def fetch(self):
         """
-        Capture a camera frame, detect apriltags, calculate pose, and
-        publish pose information to MQTT topic:
+        Capture a camera frame, detect apriltags, and calculate pose.
+
+        Publish pose information to MQTT topic:
             realm/d/<user>/<device>/processors/apriltag_pose
         """
         # get grayscale frame for apriltag detection
@@ -196,7 +197,7 @@ class TransformedApriltagDetectorJSONEncoder(JSONEncoder):
     """JSON Encoder helper for Apriltag Detector transformed attributes."""
 
     def default(self, o):
-        # JSON Encoder helper function for Apriltag Detector pose attributes.
+        """JSON Encoder helper for Apriltag Detector pose attributes."""
         if isinstance(o, (np.ndarray)):
             return list(o)
 

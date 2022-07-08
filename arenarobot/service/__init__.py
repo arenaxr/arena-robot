@@ -11,8 +11,9 @@ LICENSE file in the root directory of this source tree.
 """
 
 from .processor import ArenaRobotServiceProcessor
+from .processor.apriltag_detector import \
+    ArenaRobotServiceProcessorApriltagDetector
 from .processor.t265 import ArenaRobotServiceProcessorT265
-from .processor.apriltag_detector import ArenaRobotServiceProcessorApriltagDetector
 from .sensor import ArenaRobotServiceSensor
 from .sensor.beluga_serial import ArenaRobotServiceSensorBelugaSerial
 from .sensor.licosa_serial import ArenaRobotServiceSensorLiCosaSerial
