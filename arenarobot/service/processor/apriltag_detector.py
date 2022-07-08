@@ -42,9 +42,9 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                  camera_params: list[int],
                  dist_params: list[int],
                  apriltag_locations: dict,
-                 apriltag_family: str,
-                 num_detector_threads: int = 4,
-                 quad_decimate: float = 1.0,
+                 apriltag_family: str = 'tag36h11',
+                 num_detector_threads: int = 1,
+                 quad_decimate: float = 2.0,
                  quad_sigma: float = 0.0,
                  refine_edges: int = 1,
                  decode_sharpening: float = 0.25,
@@ -61,7 +61,7 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         # camera matrix parameters fx, fy, cx, cy
         self.params = camera_params
         
-        # distortion parameters
+        # distortion parameters k1, k2, p1, p2, k3
         self.dist_params = np.array(dist_params) 
         
         # known apriltag poses (world coordinates in meters)
@@ -122,16 +122,15 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     Capture a camera frame, detect apriltags, calculate pose, and
     publish pose information to MQTT topic: 
         realm/d/<user>/<device>/processors/apriltag_pose
-
-    TODO: figure out how this works with different users/devices 
-        (not just jpedraza/john-pi)
-        - so the device for the topic is just specified when 
-          running arena-robot-service
-    TODO: handle getting wrong representation 
-        (apriltag solver has two possible solutions)
-    TODO: handle multiple apriltags in frame at same time
-    TODO: cap.release()?
     '''
+    # TODO: figure out how this works with different users/devices 
+    #     (not just jpedraza/john-pi)
+    #     - so the device for the topic is just specified when 
+    #       running arena-robot-service
+    # TODO: handle getting wrong representation 
+    #     (apriltag solver has two possible solutions)
+    # TODO: handle multiple apriltags in frame at same time
+    # TODO: cap.release()?
     def fetch(self):
         # get grayscale frame for apriltag detection
         ret, frame = self.cap.read()

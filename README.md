@@ -88,6 +88,25 @@ This is a lidar sensor that connects through I2C and addresses by toggling its L
  - `rst_pin`: Required. Pin (integer) on `gpio_path` connected to the `I2C_RST` pin on all of the sensors.
  - `lpn_pins`: Required. Array of pins (integers) on `gpio_path` connected to `Lpn` pins on each sensor. The array must be present, and at least one pin must be specified or the service won't initialized any sensors. Sensors will be initialized and addressed in te order if this array.
 
+#### processor_apriltag_detector
+This processor reads frames, detects Apriltags, and returns camera pose given a known set of Apriltag locations.
+
+    - `video_file`: Required. Where frames should be read from. e.g. `/dev/video*`
+    - `camera_resolution`: Required. 2-element list. [horizontal resolution, vertical resolution]
+    - `camera_params`: Required. Camera parameters fx, fy, cx, cy
+    - `dist_params`: Required. Distortion parameters k1, k2, p1, p2, k3
+    - `apriltag_locations`: Required. Dictionary with Apriltag IDs as keys and 2D-list tag poses as values. The 2D-list should be a 4x4 matrix. The uppermost left 3x3 matrix should represent the rotation matrix of the Apriltag. The rightmost column, from top to bottom, contains the x, y, and z coordinates of the Apriltag's translation. The bottom row should be [0, 0, 0, 1] to allow for transformation-related matrix operations.
+
+The following parameters are for the [Python bindings for the Apriltags library](https://github.com/duckietown/lib-dt-apriltags)
+    
+    - `apriltag_family`: Optional. Defaults to 'tag36h11'. See above documentation.
+    - `tag_size`: Optional. Defaults to 0.15. See above documentation.
+    - `num_detector_threads`: Optional. Defaults to 1. See above documentation.
+    - `quad_decimate`: Optional. Defaults to 2.0. See above documentation.
+    - `quad_sigma`: Optional. Defaults to 0.0. See above documentation.
+    - `refine_edges`: Optional. Defaults to 1. See above documentation.
+    - `decode_sharpening`: Optional. Defaults to 0.25. See above documentation.
+
 ### arenavideocall
 
 After installing the repo, you should now have the `arena-video-call-chrome` command. You can also run it with `python3 -m arena-video-call-chrome`. It uses the [standard arena-py scene environment variables](https://arena.conix.io/content/python/#running-from-the-command-line).
