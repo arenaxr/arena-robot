@@ -91,7 +91,7 @@ This is a lidar sensor that connects through I2C and addresses by toggling its L
 #### processor_apriltag_detector
 This processor reads frames, detects Apriltags, and returns camera pose given a known set of Apriltag locations. All services require the following arguments:
 
-- `video_file`: Required. Where frames should be read from. e.g. `/dev/video*`
+- `video_file`: Required. Where frames should be read from. e.g. `/dev/video0` (v4l) or `http://localhost:8265/cam1` (mjpeg)
 - `camera_resolution`: Required. 2-element list. [horizontal resolution, vertical resolution]
 - `camera_params`: Required. Camera parameters fx, fy, cx, cy
 - `dist_params`: Required. Distortion parameters k1, k2, p1, p2, k3
