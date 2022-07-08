@@ -109,7 +109,9 @@ setup(
         ],
         'apriltag_detector': [
             'dt-apriltags>=3,<4',
-            'opencv-python>=4.6'
+            # issue with pylint later
+            # see https://github.com/opencv/opencv-python/issues/570#issuecomment-1151984301
+            'opencv-python==4.5.5.64'
         ]
     }
 )
