@@ -26,15 +26,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { python-version: "3.8",  name: flake8,     cmd: flake8,                                                                                  }
-          - { python-version: "3.9",  name: flake8,     cmd: flake8,                                                                                  }
-          - { python-version: "3.10", name: flake8,     cmd: flake8,                                                                                  }
-          - { python-version: "3.9",  name: pydocstyle, cmd: pydocstyle,                                                                              }
-          - { python-version: "3.8",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py,cv2 --extension-pkg-allow-list=pyrealsense2 }
-          - { python-version: "3.9",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py,cv2 --extension-pkg-allow-list=pyrealsense2 }
-          - { python-version: "3.10", name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py,cv2 --extension-pkg-allow-list=pyrealsense2 }
-          - { python-version: "3.9",  name: isort,      cmd: isort --check-only                                                                       }
-          - { python-version: "3.9",  name: bandit,     cmd: bandit -r                                                                                }
+          - { python-version: "3.8",  name: flake8,     cmd: flake8,                                                                                    }
+          - { python-version: "3.9",  name: flake8,     cmd: flake8,                                                                                    }
+          - { python-version: "3.10", name: flake8,     cmd: flake8,                                                                                    }
+          - { python-version: "3.9",  name: pydocstyle, cmd: pydocstyle,                                                                                }
+          - { python-version: "3.8",  name: pylint,     cmd: "pylint --extension-pkg-whitelist=vl53l5cx_py,cv2 --extension-pkg-allow-list=pyrealsense2" }
+          - { python-version: "3.9",  name: pylint,     cmd: "pylint --extension-pkg-whitelist=vl53l5cx_py,cv2 --extension-pkg-allow-list=pyrealsense2" }
+          - { python-version: "3.10", name: pylint,     cmd: "pylint --extension-pkg-whitelist=vl53l5cx_py,cv2 --extension-pkg-allow-list=pyrealsense2" }
+          - { python-version: "3.9",  name: isort,      cmd: isort --check-only                                                                         }
+          - { python-version: "3.9",  name: bandit,     cmd: bandit -r                                                                                  }
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
