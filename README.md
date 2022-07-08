@@ -91,21 +91,21 @@ This is a lidar sensor that connects through I2C and addresses by toggling its L
 #### processor_apriltag_detector
 This processor reads frames, detects Apriltags, and returns camera pose given a known set of Apriltag locations. All services require the following arguments:
 
-    - `video_file`: Required. Where frames should be read from. e.g. `/dev/video*`
-    - `camera_resolution`: Required. 2-element list. [horizontal resolution, vertical resolution]
-    - `camera_params`: Required. Camera parameters fx, fy, cx, cy
-    - `dist_params`: Required. Distortion parameters k1, k2, p1, p2, k3
-    - `apriltag_locations`: Required. Dictionary with Apriltag IDs as keys and 2D-list tag poses as values. The 2D-list should be a 4x4 matrix. The uppermost left 3x3 matrix should represent the rotation matrix of the Apriltag. The rightmost column, from top to bottom, contains the x, y, and z coordinates of the Apriltag's translation. The bottom row should be [0, 0, 0, 1] to allow for transformation-related matrix operations.
+- `video_file`: Required. Where frames should be read from. e.g. `/dev/video*`
+- `camera_resolution`: Required. 2-element list. [horizontal resolution, vertical resolution]
+- `camera_params`: Required. Camera parameters fx, fy, cx, cy
+- `dist_params`: Required. Distortion parameters k1, k2, p1, p2, k3
+- `apriltag_locations`: Required. Dictionary with Apriltag IDs as keys and 2D-list tag poses as values. The 2D-list should be a 4x4 matrix. The uppermost left 3x3 matrix should represent the rotation matrix of the Apriltag. The rightmost column, from top to bottom, contains the x, y, and z coordinates of the Apriltag's translation. The bottom row should be [0, 0, 0, 1] to allow for transformation-related matrix operations.
 
 The following parameters are for the [Python bindings for the Apriltags library](https://github.com/duckietown/lib-dt-apriltags):
     
-    - `apriltag_family`: Optional. Defaults to 'tag36h11'. See above documentation.
-    - `tag_size`: Optional. Defaults to 0.15. See above documentation.
-    - `num_detector_threads`: Optional. Defaults to 1. See above documentation.
-    - `quad_decimate`: Optional. Defaults to 2.0. See above documentation.
-    - `quad_sigma`: Optional. Defaults to 0.0. See above documentation.
-    - `refine_edges`: Optional. Defaults to 1. See above documentation.
-    - `decode_sharpening`: Optional. Defaults to 0.25. See above documentation.
+- `apriltag_family`: Optional. Defaults to 'tag36h11'. See above documentation.
+- `tag_size`: Optional. Defaults to 0.15. See above documentation.
+- `num_detector_threads`: Optional. Defaults to 1. See above documentation.
+- `quad_decimate`: Optional. Defaults to 2.0. See above documentation.
+- `quad_sigma`: Optional. Defaults to 0.0. See above documentation.
+- `refine_edges`: Optional. Defaults to 1. See above documentation.
+- `decode_sharpening`: Optional. Defaults to 0.25. See above documentation.
 
 ### arenavideocall
 
