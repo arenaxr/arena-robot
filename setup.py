@@ -86,6 +86,7 @@ setup(
     install_requires=[
         'aioserial>=1,<2',
         'arena-py>=0.1.43,<1',
+        'scipy>=1.8',
         'numpy>=1,<2',
         'pyserial>=3,<4',
         'python-periphery>=2,<3',
@@ -105,6 +106,10 @@ setup(
         ],
         'realsense': [
             'pyrealsense2>=2,<3'
+        ],
+        'apriltag_detector': [
+            'dt-apriltags>=3,<4',
+            'opencv-python>=4.6'
         ]
     }
 )

@@ -30,9 +30,9 @@ jobs:
           - { python-version: "3.9",  name: flake8,     cmd: flake8,                                                                              }
           - { python-version: "3.10", name: flake8,     cmd: flake8,                                                                              }
           - { python-version: "3.9",  name: pydocstyle, cmd: pydocstyle,                                                                          }
-          - { python-version: "3.8",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 }
-          - { python-version: "3.9",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 }
-          - { python-version: "3.10", name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 }
+          - { python-version: "3.8",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 --extension-pkg-whitelist=cv2 }
+          - { python-version: "3.9",  name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 --extension-pkg-whitelist=cv2 }
+          - { python-version: "3.10", name: pylint,     cmd: pylint --extension-pkg-whitelist=vl53l5cx_py --extension-pkg-allow-list=pyrealsense2 --extension-pkg-whitelist=cv2 }
           - { python-version: "3.9",  name: isort,      cmd: isort --check-only                                                                   }
           - { python-version: "3.9",  name: bandit,     cmd: bandit -r                                                                            }
     steps:
@@ -48,10 +48,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.python-version }}-pip-
       - name: Install Python Development and Realsense Dependencies
-        run: python -m pip install -e .[dev,realsense]
+        run: python -m pip install -e .[dev,realsense,apriltag_detector]
         if: matrix.python-version != '3.10'
       - name: Install Python Development Dependencies
-        run: python -m pip install -e .[dev]
+        run: python -m pip install -e .[dev,apriltag_detector]
         if: matrix.python-version == '3.10'
       - name: Ignore pyrealsense2
         run: printf "[TYPECHECK]\nignored-modules=pyrealsense2" > .pylintrc
