@@ -15,8 +15,9 @@ from typing import List
 
 import cv2
 import numpy as np
-from arenarobot.service.processor import ArenaRobotServiceProcessor
 from dt_apriltags import Detector
+
+from arenarobot.service.processor import ArenaRobotServiceProcessor
 
 OPENCV_RES_INDEX_HORIZ = 3
 OPENCV_RES_INDEX_VERT = 4
