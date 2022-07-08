@@ -12,6 +12,7 @@ LICENSE file in the root directory of this source tree.
 
 from json import JSONEncoder, dumps, loads
 
+from typing import List
 import cv2
 import numpy as np
 from arenarobot.service.processor import ArenaRobotServiceProcessor
@@ -42,7 +43,6 @@ def detection2matrix(translation, rotation):
 
 
 # pylint: disable=too-many-instance-attributes
-# pylint: disable=fixme
 class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     """Apriltag Detector processor class for the ARENA."""
 
@@ -52,9 +52,9 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     # pylint: disable=too-many-statements
     def __init__(self,
                  video_file: str,
-                 camera_resolution: list[int],
-                 camera_params: list[int],
-                 dist_params: list[int],
+                 camera_resolution: List[int],
+                 camera_params: List[int],
+                 dist_params: List[int],
                  apriltag_locations: dict,
                  apriltag_family: str = 'tag36h11',
                  num_detector_threads: int = 1,
@@ -131,14 +131,14 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
 
         super().setup()
 
-    # TODO: figure out how this works with different users/devices
+    # Planned: figure out how this works with different users/devices
     #     (not just jpedraza/john-pi)
     #     - so the device for the topic is just specified when
     #       running arena-robot-service
-    # TODO: handle getting wrong representation
+    # Planned: handle getting wrong representation
     #     (apriltag solver has two possible solutions)
-    # TODO: handle multiple apriltags in frame at same time
-    # TODO: cap.release()?
+    # Planned: handle multiple apriltags in frame at same time
+    # Planned: cap.release()?
     def fetch(self):
         """
         Capture a camera frame, detect apriltags, calculate pose, and
@@ -183,7 +183,6 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         out = {
             "pose": pose,
         }
-        print(out)
         serializable_out = loads(dumps(
             out,
             cls=TransformedApriltagDetectorJSONEncoder
