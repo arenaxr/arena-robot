@@ -179,7 +179,6 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         out = {
             "pose": pose,
         }
-        print(out)
 
         serializable_out = loads(dumps(
             out,
