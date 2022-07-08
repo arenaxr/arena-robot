@@ -10,18 +10,17 @@ This source code is licensed under the BSD-3-Clause license found in the
 LICENSE file in the root directory of this source tree.
 """
 
+import time
 from json import JSONEncoder, dumps, loads
 import numpy as np
 import cv2
 from paho.mqtt.client import MQTTMessage
-from transformations import euler_matrix, quaternion_matrix
 from dt_apriltags import Detector
 from arenarobot.service.processor import ArenaRobotServiceProcessor
 from scipy.spatial.transform import Rotation as Ro
-import time
 
-HORIZONTAL_RESOLUTION_INDEX = 3
-VERTICAL_RESOLUTION_INDEX = 4
+OPENCV_RES_INDEX_HORIZ = 3
+OPENCV_RES_INDEX_VERT = 4
         
 FLIP_MATRIX = np.array([[1,  0,  0, 0],
                         [0, -1,  0, 0],
@@ -38,12 +37,12 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
     # pylint: disable=too-many-arguments
     # pylint: disable=too-many-statements
     def __init__(self,
+                 video_file: str,
                  camera_resolution: list[int],
                  camera_params: list[int],
                  dist_params: list[int],
-                 apriltag_family: str,
                  apriltag_locations: dict,
-                 video_file: str,
+                 apriltag_family: str,
                  num_detector_threads: int = 4,
                  quad_decimate: float = 1.0,
                  quad_sigma: float = 0.0,
@@ -53,20 +52,31 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                  **kwargs):
         """Initialize the apriltag detector processor class."""
         
-        self.cap                = video_file            # video capture
-        self.camera_resolution  = camera_resolution     # camera resolution [width, height] (pixels)
-        self.params             = camera_params         # camera matrix parameters fx, fy, cx, cy
-        self.dist_params        = np.array(dist_params) # distortion parameters
-       
-        self.apriltag_family      = apriltag_family 
-        self.num_detector_threads = num_detector_threads
-        self.quad_decimate       = quad_decimate
-        self.quad_sigma          = quad_sigma
-        self.refine_edges        = refine_edges
-        self.decode_sharpening   = decode_sharpening
-        self.tag_size            = tag_size
+        # video_capture 
+        self.cap = video_file
         
-        self.apriltags          = apriltag_locations    # known apriltag poses (world coordinates in meters)
+        # camera resolution [width, height] in pixels
+        self.camera_resolution = camera_resolution
+        
+        # camera matrix parameters fx, fy, cx, cy
+        self.params = camera_params
+        
+        # distortion parameters
+        self.dist_params = np.array(dist_params) 
+        
+        # known apriltag poses (world coordinates in meters)
+        self.apriltags = apriltag_locations
+        
+        # documentation for below parameters can be found at 
+        # https://github.com/duckietown/lib-dt-apriltags
+        self.apriltag_family = apriltag_family 
+        self.num_detector_threads = num_detector_threads
+        self.quad_decimate = quad_decimate
+        self.quad_sigma = quad_sigma
+        self.refine_edges = refine_edges
+        self.decode_sharpening = decode_sharpening
+        self.tag_size = tag_size
+        
         self.at_detector = None
         self.mtx = None
         
@@ -79,15 +89,15 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
             **kwargs
         )
     '''
-    Set up Apriltag Detector object and define a bunch of stuff
+    Set up video capture and Apriltag Detector object
     '''
     def setup(self):
         self.cap = cv2.VideoCapture(self.cap)
 
         # subsample to increasing processing speed
-        # note: selected resolution affects camera parameters
-        self.cap.set(HORIZONTAL_RESOLUTION_INDEX, self.camera_resolution[0])
-        self.cap.set(VERTICAL_RESOLUTION_INDEX, self.camera_resolution[1])
+        # note: camera parameters depend on which resolution you're using
+        self.cap.set(OPENCV_RES_INDEX_HORIZ, self.camera_resolution[0])
+        self.cap.set(OPENCV_RES_INDEX_VERT, self.camera_resolution[1])
 
         # camera matrix
         self.mtx = np.array([[self.params[0], 0.000000000000, self.params[2]],
@@ -95,26 +105,32 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                              [0.000000000000, 0.000000000000, 1.000000000000]])
 
         # apriltag detector
+        # set quad_decimate to 2.0 for faster detections, worse accuracy
+        # setting debug=1 saves images - don't use, runs very slowly
         self.at_detector = Detector(searchpath=['apriltags'],
                                     families=self.apriltag_family,
                                     nthreads=self.num_detector_threads,
-                                    quad_decimate=self.quad_decimate, # set to 2.0 for faster detections
+                                    quad_decimate=self.quad_decimate,
                                     quad_sigma=self.quad_sigma,
                                     refine_edges=self.refine_edges,
                                     decode_sharpening=self.decode_sharpening,
-                                    debug=0) # debug=1 saves images, don't use
+                                    debug=0)
 
         super().setup()
 
     '''
     Capture a camera frame, detect apriltags, calculate pose, and
-    publish pose information to MQTT topic: realm/d/<user>/<device>/processors/apriltag_pose
-    TODO: figure out how this works with different users/devices (not just jpedraza/john-pi)
-          - so the device for the topic is just specified when running arena-robot-service
-    TODO: handle getting wrong representation (apriltag solver has two possible solutions)
+    publish pose information to MQTT topic: 
+        realm/d/<user>/<device>/processors/apriltag_pose
+
+    TODO: figure out how this works with different users/devices 
+        (not just jpedraza/john-pi)
+        - so the device for the topic is just specified when 
+          running arena-robot-service
+    TODO: handle getting wrong representation 
+        (apriltag solver has two possible solutions)
     TODO: handle multiple apriltags in frame at same time
     TODO: cap.release()?
-    TODO: add among us support
     '''
     def fetch(self):
         # get grayscale frame for apriltag detection
@@ -127,28 +143,34 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         
         # undistort frame
         h, w = gray_image.shape[:2]
-        new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(self.mtx, self.dist_params, (w,h), 1, (w,h))
-        dst = cv2.undistort(gray_image, self.mtx, self.dist_params, None, new_camera_matrix)
+        new_camera_mtx, roi = cv2.getOptimalNewCameraMatrix(self.mtx, 
+                                                            self.dist_params, 
+                                                            (w,h), 1, (w,h))
+        dst = cv2.undistort(gray_image, self.mtx, 
+                            self.dist_params, None, new_camera_mtx)
         
         # detect apriltags
-        tags = self.at_detector.detect(dst, estimate_tag_pose=True, camera_params=self.params, tag_size=self.tag_size)
+        tags = self.at_detector.detect(dst, estimate_tag_pose=True, 
+                                       camera_params=self.params, 
+                                       tag_size=self.tag_size)
         
         pose = None
         if len(tags) > 0:
-            Rot = tags[0].pose_R
-            T = tags[0].pose_t
+            detected_pose_t = tags[0].pose_t
+            detected_pose_R = tags[0].pose_R
 
-            # TODO: find a nicer way to notate/document this
-            # M = [Rot,     T.T]
-            #     [0, 0, 0, 1  ]
-            
-            T = [t[0] for t in T] 
-            T = np.array([T])
-            M = np.concatenate((Rot, T.T), axis=1)
-            bottom_row = np.array([0, 0, 0, 1], dtype=float)
-            M = np.concatenate((M, [bottom_row]), axis=0)
-            
-            if str(tags[0].tag_id) in self.apriltags: 
+            # reformat translation and rotation into 4x4 matrix
+            # upper-left 3x3 matrix is the rotation matrix
+            # rightmost column is translation vector (x, y, z, top to bottom)
+            # bottom row is [0, 0, 0, 1] to help with transformations
+            detected_pose_t = np.array([[t[0] for t in detected_pose_t]])  
+            M = np.concatenate((detected_pose_R, detected_pose_t.T), axis=1)
+            M = np.concatenate((M, [np.array([0, 0, 0, 1])]), axis=0)
+             
+            if str(tags[0].tag_id) in self.apriltags:
+                # given tag pose in world coordinates and tag pose
+                # in camera coordinates, perform transformation and return
+                # pose of camera in world coordinates 
                 tag_M = self.apriltags[str(tags[0].tag_id)]
                 M = FLIP_MATRIX @ M @ FLIP_MATRIX
                 pose = tag_M @ np.linalg.inv(M)
@@ -158,7 +180,7 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         out = {
             "pose": pose,
         }
-        # print(out)
+        print(out)
 
         serializable_out = loads(dumps(
             out,
@@ -169,10 +191,10 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
         self.publish({"data": serializable_out})
 
 class TransformedApriltagDetectorJSONEncoder(JSONEncoder):
-    """JSON Encoder helper for Apriltag Detector transformed attributes."""
+    # JSON Encoder helper for Apriltag Detector transformed attributes.
 
     def default(self, o):
-        """JSON Encoder helper function for Apriltag Detector pose attributes."""
+        # JSON Encoder helper function for Apriltag Detector pose attributes.
         if isinstance(o, (np.ndarray)):
             return list(o)
 
