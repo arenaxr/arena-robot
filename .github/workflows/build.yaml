@@ -17,11 +17,11 @@ jobs:
     name: Build Source Distribution
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         name: Install Python
         with:
-          python-version: 3.9
+          python-version: 3.10
       - name: Install Python build tool
         run: python -m pip install build
       - name: Build sdist
@@ -32,7 +32,7 @@ jobs:
       - name: SHA256 files
         run: find . -type f -exec sha256sum {} \;
         working-directory: dist
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: python-dist
           path: dist/*.tar.gz
@@ -43,13 +43,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-20.04, python-version: 3.9 }
-          - { os: windows-2019, python-version: 3.9 }
-          - { os: macos-10.15,  python-version: 3.9 }
+          - { os: ubuntu-20.04, python-version: 3.10 }
+          - { os: windows-2022, python-version: 3.10 }
+          - { os: macos-11,  python-version: 3.10 }
     runs-on: ${{ matrix.os }}
     steps:
       - name: Download python-dist artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: python-dist
           path: dist/
@@ -57,7 +57,7 @@ jobs:
         shell: bash
         run: find . -type f -exec sha256sum {} \;
         working-directory: dist
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         name: Install Python ${{ matrix.python-version }}
         with:
           python-version: ${{ matrix.python-version }}
@@ -76,53 +76,58 @@ jobs:
           # - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: musllinux_x86_64,  python-version: cp310 } # no numpy wheel
           - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp38  }
+          # - { os: ubuntu-20.04, arch: manylinux_x86_64,  python-version: pp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp38  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: cp310 } # no numpy wheel
           # - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: musllinux_i686,    python-version: cp310 } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp38  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_i686,    python-version: pp39  } # no numpy wheel
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp38  }
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp39  }
           - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: cp310 }
           # - { os: ubuntu-20.04, arch: musllinux_aarch64, python-version: cp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: musllinux_aarch64, python-version: cp310 } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp38  } # no numpy wheel
+          # - { os: ubuntu-20.04, arch: manylinux_aarch64, python-version: pp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp38  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_ppc64le, python-version: cp310 } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp38  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp39  } # no numpy wheel
           # - { os: ubuntu-20.04, arch: manylinux_s390x,   python-version: cp310 } # no numpy wheel
-          - { os: windows-2019, arch: win_amd64,         python-version: cp38  }
-          - { os: windows-2019, arch: win_amd64,         python-version: cp39  }
-          - { os: windows-2019, arch: win_amd64,         python-version: cp310 }
-          # - { os: windows-2019, arch: win_amd64,         python-version: pp38  } # no numpy wheel
-          # - { os: windows-2019, arch: win_arm64,         python-version: cp39  } # no numpy wheel
-          # - { os: windows-2019, arch: win_arm64,         python-version: cp310 } # no numpy wheel
-          - { os: windows-2019, arch: win32,             python-version: cp38  }
-          - { os: windows-2019, arch: win32,             python-version: cp39  }
-          # - { os: windows-2019, arch: win32,             python-version: cp310 } # no numpy wheel
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp38  }
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp39  }
-          - { os: macos-10.15,  arch: macosx_x86_64,     python-version: cp310 }
-          # - { os: macos-10.15,  arch: macosx_x86_64,     python-version: pp38  } # no numpy wheel
-          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp38  }
-          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp39  }
-          - { os: macos-10.15,  arch: macosx_arm64,      python-version: cp310 }
-          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp38  }
-          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp39  }
-          - { os: macos-10.15,  arch: macosx_universal2, python-version: cp310 }
+          - { os: windows-2022, arch: win_amd64,         python-version: cp38  }
+          - { os: windows-2022, arch: win_amd64,         python-version: cp39  }
+          - { os: windows-2022, arch: win_amd64,         python-version: cp310 }
+          - { os: windows-2022, arch: win_amd64,         python-version: pp38  }
+          # - { os: windows-2022, arch: win_amd64,         python-version: pp39  } # no numpy wheel
+          # - { os: windows-2022, arch: win_arm64,         python-version: cp39  } # no numpy wheel
+          # - { os: windows-2022, arch: win_arm64,         python-version: cp310 } # no numpy wheel
+          - { os: windows-2022, arch: win32,             python-version: cp38  }
+          - { os: windows-2022, arch: win32,             python-version: cp39  }
+          - { os: windows-2022, arch: win32,             python-version: cp310 }
+          - { os: macos-11,     arch: macosx_x86_64,     python-version: cp38  }
+          - { os: macos-11,     arch: macosx_x86_64,     python-version: cp39  }
+          - { os: macos-11,     arch: macosx_x86_64,     python-version: cp310 }
+          - { os: macos-11,     arch: macosx_x86_64,     python-version: pp38  }
+          # - { os: macos-11,     arch: macosx_x86_64,     python-version: pp39  } # no numpy wheel
+          - { os: macos-11,     arch: macosx_arm64,      python-version: cp38  }
+          - { os: macos-11,     arch: macosx_arm64,      python-version: cp39  }
+          - { os: macos-11,     arch: macosx_arm64,      python-version: cp310 }
+          - { os: macos-11,     arch: macosx_universal2, python-version: cp38  }
+          - { os: macos-11,     arch: macosx_universal2, python-version: cp39  }
+          - { os: macos-11,     arch: macosx_universal2, python-version: cp310 }
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up QEMU
         if: runner.os == 'Linux' && matrix.arch != 'manylinux_x86_64'
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
         with:
           platforms: all
       - name: Build Wheel
-        uses: pypa/cibuildwheel@v2.3.1
+        uses: pypa/cibuildwheel@v2
         env:
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: ${{ matrix.python-version }}-${{ matrix.arch }}
@@ -134,7 +139,7 @@ jobs:
         shell: bash
         run: find . -type f -name "*.whl" -exec sha256sum {} \;
         working-directory: wheelhouse
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         # Some QEMU+Cython float precision issue, so do not upload/bundle artifact for now
         # Just want to be sure builds and runs without error
         # UPDATE: Use them for now; want to support new Pi aarch64 OS
@@ -150,9 +155,9 @@ jobs:
     env:
       PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Download python-dist artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: python-dist
         path: dist/
@@ -170,9 +175,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Download Python artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: python-dist
         path: python-dist/

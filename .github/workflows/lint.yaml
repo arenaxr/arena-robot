@@ -17,7 +17,7 @@ jobs:
     name: Markdown Link Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
     - uses: gaurav-nelson/github-action-markdown-link-check@v1
   python-lint:
     name: Python lint ${{ matrix.name }} ${{ matrix.python-version }}
@@ -36,12 +36,12 @@ jobs:
           - { python-version: "3.9",  name: isort,      cmd: isort --check-only                                                                         }
           - { python-version: "3.9",  name: bandit,     cmd: bandit -r                                                                                  }
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         name: Install Python
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt','**/setup.py','**/pyproject.toml') }}
