@@ -13,11 +13,24 @@ LICENSE file in the root directory of this source tree.
 from json import JSONEncoder, dumps, loads
 from typing import List
 
-import cv2
 import numpy as np
-from dt_apriltags import Detector
 
 from arenarobot.service.processor import ArenaRobotServiceProcessor
+
+# Optional imports allow for constants from this module to be referenced
+# and for the service to be recognized without all of the required
+# dependencies installed need for starting this service.
+imports_missing = []
+try:
+    import cv2
+except ImportError as err:
+    cv2 = err
+    imports_missing.append(err)
+try:
+    from dt_apriltags import Detector
+except ImportError as err:
+    Detector = err
+    imports_missing.append(err)
 
 OPENCV_RES_INDEX_HORIZ = 3
 OPENCV_RES_INDEX_VERT = 4
@@ -67,6 +80,10 @@ class ArenaRobotServiceProcessorApriltagDetector(ArenaRobotServiceProcessor):
                  tag_size: float = 0.15,
                  **kwargs):
         """Initialize the apriltag detector processor class."""
+        # Check for missing imports
+        if len(imports_missing) > 0:
+            raise Exception(imports_missing)
+
         # video_capture
         self.cap = video_file
 

@@ -13,9 +13,17 @@ LICENSE file in the root directory of this source tree.
 import time
 from json import JSONEncoder, dumps, loads
 
-import pyrealsense2.pyrealsense2 as rs
-
 from arenarobot.service.sensor import ArenaRobotServiceSensor
+
+# Optional imports allow for constants from this module to be referenced
+# and for the service to be recognized without all of the required
+# dependencies installed need for starting this service.
+imports_missing = []
+try:
+    import pyrealsense2.pyrealsense2 as rs
+except ImportError as err:
+    rs = err
+    imports_missing.append(err)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -33,6 +41,10 @@ class ArenaRobotServiceSensorT265(ArenaRobotServiceSensor):
                  enable_mapping: bool = False,
                  enable_dynamic_calibration: bool = True, **kwargs):
         """Initialize the T265 sensor class."""
+        # Check for missing imports
+        if len(imports_missing) > 0:
+            raise Exception(imports_missing)
+
         self.timeout_ms = timeout_ms
         self.enable_pose_jumping = enable_pose_jumping
         self.enable_relocalization = enable_relocalization

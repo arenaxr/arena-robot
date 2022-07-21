@@ -18,8 +18,17 @@ import numpy as np
 from periphery import GPIO
 
 from arenarobot.service.sensor import ArenaRobotServiceSensor
-from vl53l5cx_py.driver import VL53L5CX
 from vl53l5cx_py.helpers import VL53L5CXJSONEncoder
+
+# Optional imports allow for constants from this module to be referenced
+# and for the service to be recognized without all of the required
+# dependencies installed need for starting this service.
+imports_missing = []
+try:
+    from vl53l5cx_py.driver import VL53L5CX
+except ImportError as err:
+    VL53L5CX = err
+    imports_missing.append(err)
 
 
 class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
@@ -30,6 +39,10 @@ class ArenaRobotServiceSensorVL53L5CX(ArenaRobotServiceSensor):
     def __init__(self, dev_path: str, gpio_path: str, rst_pin: int,
                  lpn_pins: Sequence[int], **kwargs):
         """Initialize the VL53L5CX sensor class."""
+        # Check for missing imports
+        if len(imports_missing) > 0:
+            raise Exception(imports_missing)
+
         self.dev_path = dev_path
         self.gpio_path = gpio_path
         self.rst_pin = rst_pin
