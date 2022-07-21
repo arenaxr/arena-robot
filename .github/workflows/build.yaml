@@ -127,7 +127,7 @@ jobs:
         with:
           platforms: all
       - name: Build Wheel
-        uses: pypa/cibuildwheel@v2
+        uses: pypa/cibuildwheel@v2.8.1
         env:
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BUILD: ${{ matrix.python-version }}-${{ matrix.arch }}
