@@ -12,7 +12,7 @@ pip install arena-robot
 
 Latest development:
 ```bash
-pip install git+https://github.com/conix-center/ARENA-robot#egg=arena-robot
+pip install git+https://github.com/arenaxr/arena-robot#egg=arena-robot
 ```
 
 Or for development, clone the repo and from inside the directory:

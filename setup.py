@@ -55,10 +55,10 @@ setup(
     ext_modules=cythonize(extensions, language_level="3"),
     zip_safe=False,
     platforms=["any"],
-    url="https://github.com/conix-center/ARENA-robot",
+    url="https://github.com/arenaxr/arena-robot",
     project_urls={
-        'Bug Reports': 'https://github.com/conix-center/ARENA-robot/issues',
-        'Source': 'https://github.com/conix-center/ARENA-robot',
+        'Bug Reports': 'https://github.com/arenaxr/arena-robot/issues',
+        'Source': 'https://github.com/arenaxr/arena-robot',
     },
     classifiers=[
         'Development Status :: 4 - Beta',
