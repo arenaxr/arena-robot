@@ -126,6 +126,10 @@ jobs:
         uses: docker/setup-qemu-action@v2
         with:
           platforms: all
+      - name: Set up coreutils (for sha256sum)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: env HOMEBREW_NO_AUTO_UPDATE=1 brew install coreutils
       - name: Build Wheel
         uses: pypa/cibuildwheel@v2.8.1
         env:
