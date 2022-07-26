@@ -72,6 +72,8 @@ This is an Intel T265:
  - `enable_map_preservation`: Optional. Defaults to False. Preserve map from the previous run.
  - `enable_dynamic_calibration`: Optional. Defaults to True. Enable dynamic calibration.
 
+NOTE: This requires an extras package: `pip install arena-robot[realsense]`
+
 #### processor_t265
 This is an Intel T265 transformation processor. This service runs initially to set up callback listeners, so the `interval_ms` should always be `-1`. The available options are:
 
@@ -112,6 +114,8 @@ The following parameters are for the [Python bindings for the Apriltags library]
 - `quad_sigma`: Optional. Defaults to 0.0. See above documentation.
 - `refine_edges`: Optional. Defaults to 1. See above documentation.
 - `decode_sharpening`: Optional. Defaults to 0.25. See above documentation.
+
+NOTE: This requires an extras package: `pip install arena-robot[apriltag_detector]`
 
 #### controller_pololu_slave_i2c
 This controller allows for controlling and receiving data from a [Pololu slave device](https://github.com/pololu/pololu-rpi-slave-arduino-library) over I2C. This service has been abstracted to work with any data configuration provided by the I2C driver on the Arduino side.
