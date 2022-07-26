@@ -24,9 +24,15 @@ pip install -e .
 
 ### arenarobot
 
+Services may be one of the following types:
+
+ - `sensor`: Primarily takes in data from a hardware device and publishes the data to its own topic. These are usually sensors (ex. IMU, lidar, etc.).
+ - `processor`: Primarily takes in data from another MQTT topic (typically a `sensor`, `controller`, or another `processor`) and publishes transformed data to its own topic. These are usually more computationally-heavy tasks that have been decouples from the sensor service or they are transformations that take in data from multiple sensors, processors, or controllers (ex. VIO, SLAM, navigation, etc.).
+ - `controller`: Primarily takes in data on its own topic and publishes data on its own topic. Controllers usually interact with hardware devices that constantly take in and produce data (ex. a robot, drone, etc.)
+
 Services that stream to MQTT may be started with the `arena-robot-service` command. See [`examples/service_sensor_vl53l5cx_lidar_1.json`](./examples/service_sensor_vl53l5cx_lidar_1.json) for a service file example. All services require the following arguments:
 
- - `service_type`: Required. Currently only `sensor_vl53l5cx` is supported.
+ - `service_type`: Required. See below for service types.
  - `instance_name`: Required. The name of this running service.
  - `subtopic`: Required. The device subtopic to publish to. For sensors, this will always be prefixed with `sensors/`. For processors, this will always be prefixed with `processors/`.
  - `interval_ms` For services that run repeatedly, this is the interval. Set to -1 by default, which will fire the service once. Set to 0 to fire as fast as possible. This option is ignored for async-based services.
@@ -106,6 +112,103 @@ The following parameters are for the [Python bindings for the Apriltags library]
 - `quad_sigma`: Optional. Defaults to 0.0. See above documentation.
 - `refine_edges`: Optional. Defaults to 1. See above documentation.
 - `decode_sharpening`: Optional. Defaults to 0.25. See above documentation.
+
+#### controller_pololu_slave_i2c
+This controller allows for controlling and receiving data from a [Pololu slave device](https://github.com/pololu/pololu-rpi-slave-arduino-library) over I2C. This service has been abstracted to work with any data configuration provided by the I2C driver on the Arduino side.
+
+Flash the Pololu sketch to the A-Star or Romi. Examples for both boards may be found [here](https://github.com/pololu/pololu-rpi-slave-arduino-library/tree/master/examples), but you should not download these directly. So, prepare the hardware like so:
+
+1. You will need to install either the [`AStar32U4` Arduino Library](https://github.com/pololu/a-star-32u4-arduino-library) or the [`Romi32U4` Arduino Library](https://github.com/pololu/romi-32u4-arduino-library) insalled in the Arduino IDE.
+2. Install the [`PololuRPiSlave` Arduino Library](https://github.com/pololu/pololu-rpi-slave-arduino-library) and load the example for your board via the Arduino example menu.
+3. Using `raspi-config`, enable I2C (if using a Raspberry Pi).
+4. Add `dtparam=i2c_arm_baudrate=400000` to `/boot/config.txt` (if using a Raspberry Pi).
+5. Reboot
+
+The example service configuration found at [`examples/service_controller_pololu_slave_i2c_romi.json`](./examples/service_controller_pololu_slave_i2c_romi.json) matches the `Data` struct defined in the Romi example found [here](https://github.com/pololu/pololu-rpi-slave-arduino-library/blob/d002d901acdecd5c23955a3595150e00cff1fb09/examples/RomiRPiSlaveDemo/RomiRPiSlaveDemo.ino) (note: this is a permalink to a specific Git version of this file).
+
+`interval_ms` should be set to `100` ms by default, matching the Pololu polling speed. Anything faster is not guaranteed to work. All services require the following arguments:
+
+ - `dev_path`: Required. Path to the I2C dev file device. For example, the first I2C port on the Raspberry Pi is `/dev/i2c-1`.
+- `slave_data_types`: Required. Dictionary of objects for each data type found in the Pololu `Data` struct in the order they are defined in the struct. Each top level key in this dictionary is the friendly name for the data type. Each object for these keys may contain:
+  - `format`: Required. A single string character matching a [Python Struct Format Character](https://docs.python.org/3/library/struct.html#format-characters). Repeated characters can be accomplished with the `num_items` field. This also ensure that strings are handled properly.
+  - `num_items`: Required. The number of items this data type has. Multiple items will be returned as a list in MQTT with this key. Must be at least `1`.
+  - `write`: Required. Bool of whether or not this field may be written to.
+  - `initial`: Required if `write` is `true`. For more fields, this is an array of initial values. Number of items in list should match `num_items`. If `format` is `s`, then this should be a string with the number of characters of `num_items` (note that strings like `\u0000` count as one character).
+
+The controller receives commands on its own MQTT topic. It will only processor commands that are well-formed and targeted for the specific instance. Commands consist of a standard ARENA-robot message with a key called `pololu_device_commands` in `data`. Commands will be executed in the order listed. This key consists of an array of objects, each containing:
+
+ - `name`: Required. The name of the field to be set. This matches the key for each object in `slave_data_types`.
+ - `value`: Required. Either a list of items (for fields with `num_items` greater than `1`) or a single value to set. For string fields, this must always be a string (not a list).
+ - `index`: Optional. An integer offset for setting values. This allows values in the middle at at the end of a field with `num_items` greater than `1` to be set without setting the earlier values.
+
+For example, to turn on the red LED on an instance called `service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi` from the command line:
+```bash
+arenaxr_pub -t realm/d/myuser/mydevice/controllers/robot -m '"{\"target_device_instance_name\": \"service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi\", \"msg\": {\"data\": {\"pololu_device_commands\": [{\"name\": \"led_red\", \"value\": true}]}}}"'
+```
+```json
+{
+  "target_device_instance_name": "service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi",
+  "msg": {
+    "data": {
+      "pololu_device_commands": [
+        {"name": "led_red", "value": true}
+      ]
+    }
+  }
+}
+```
+
+To play a tune:
+```bash
+arenaxr_pub -t realm/d/myuser/mydevice/controllers/robot -m '"{\"target_device_instance_name\": \"service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi\", \"msg\": {\"data\": {\"pololu_device_commands\": [{\"name\": \"notes\", \"value\": \"l16ceg>c\"}, {\"name\": \"notes_play\", \"value\": true}]}}}"'
+```
+```json
+{
+  "target_device_instance_name": "service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi",
+  "msg": {
+    "data": {
+      "pololu_device_commands": [
+        {"name": "notes", "value": "l16ceg>c"},
+        {"name": "notes_play", "value": true}
+      ]
+    }
+  }
+}
+```
+
+To set both motors (causing a spin):
+```bash
+arenaxr_pub -t realm/d/myuser/mydevice/controllers/robot -m '"{\"target_device_instance_name\": \"service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi\", \"msg\": {\"data\": {\"pololu_device_commands\": [{\"name\": \"motors\", \"value\": [-512, 512]}]}}}"'
+```
+```json
+{
+  "target_device_instance_name": "service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi",
+  "msg": {
+    "data": {
+      "pololu_device_commands": [
+        {"name": "motors", "value": [-512, 512]}
+      ]
+    }
+  }
+}
+```
+
+To set only the second motor (makes use of the `index` field):
+```bash
+arenaxr_pub -t realm/d/myuser/mydevice/controllers/robot -m '"{\"target_device_instance_name\": \"service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi\", \"msg\": {\"data\": {\"pololu_device_commands\": [{\"name\": \"motors\", \"value\": [60], \"index\": 1}]}}}"'
+```
+```json
+{
+  "target_device_instance_name": "service_controller_pololu_slave_i2c_pololu_slave_i2c_1_romi",
+  "msg": {
+    "data": {
+      "pololu_device_commands": [
+        {"name": "motors", "value": [60], "index": 1}
+      ]
+    }
+  }
+}
+```
 
 ### arenavideocall
 

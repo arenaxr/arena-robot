@@ -10,6 +10,9 @@ This source code is licensed under the BSD-3-Clause license found in the
 LICENSE file in the root directory of this source tree.
 """
 
+from .controller import ArenaRobotServiceController
+from .controller.pololu_slave_i2c import \
+    ArenaRobotServiceControllerPololuSlaveI2C
 from .processor import ArenaRobotServiceProcessor
 from .processor.apriltag_detector import \
     ArenaRobotServiceProcessorApriltagDetector
@@ -30,5 +33,7 @@ SERVICE_TYPE_MAP = {
     "sensor_vl53l5cx": ArenaRobotServiceSensorVL53L5CX,
     "processor": ArenaRobotServiceProcessor,
     "processor_t265": ArenaRobotServiceProcessorT265,
-    "processor_apriltag_detector": ArenaRobotServiceProcessorApriltagDetector
+    "processor_apriltag_detector": ArenaRobotServiceProcessorApriltagDetector,
+    "controller": ArenaRobotServiceController,
+    "controller_pololu_slave_i2c": ArenaRobotServiceControllerPololuSlaveI2C
 }

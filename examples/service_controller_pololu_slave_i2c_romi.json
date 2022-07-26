@@ -1,0 +1,75 @@
+{
+    "service_type": "controller_pololu_slave_i2c",
+    "instance_name": "pololu_slave_i2c_1_romi",
+    "subtopic": "robot",
+    "interval_ms": 100,
+    "dev_path": "/dev/i2c-1",
+    "slave_data_types": {
+        "led_yellow": {
+            "format": "?",
+            "num_items": 1,
+            "write": true,
+            "initial": [false]
+        },
+        "led_green": {
+            "format": "?",
+            "num_items": 1,
+            "write": true,
+            "initial": [false]
+        },
+        "led_red": {
+            "format": "?",
+            "num_items": 1,
+            "write": true,
+            "initial": [false]
+        },
+        "btn_a": {
+            "format": "?",
+            "num_items": 1,
+            "write": false
+        },
+        "btn_b": {
+            "format": "?",
+            "num_items": 1,
+            "write": false
+        },
+        "btn_c": {
+            "format": "?",
+            "num_items": 1,
+            "write": false
+        },
+        "motors": {
+            "format": "h",
+            "num_items": 2,
+            "write": true,
+            "initial": [0, 0]
+        },
+        "batt_millivolts": {
+            "format": "H",
+            "num_items": 1,
+            "write": false
+        },
+        "analog_in": {
+            "format": "H",
+            "num_items": 6,
+            "write": false
+        },
+        "notes_play": {
+            "format": "?",
+            "num_items": 1,
+            "write": true,
+            "initial": [false]
+        },
+        "notes": {
+            "format": "s",
+            "num_items": 14,
+            "write": true,
+            "initial": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+        },
+        "encoders": {
+            "format": "h",
+            "num_items": 2,
+            "write": false
+        }
+    }
+}
