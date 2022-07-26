@@ -153,7 +153,6 @@ class ArenaRobotServiceControllerPololuSlaveI2C(ArenaRobotServiceController):
     def fetch(self):
         """Fetch Pololu Slave I2C data."""
         # Set up for read
-        # sleep(0.0001)
         msgs = [I2C.Message([0x0], read=False)]
         try:
             self.i2c_bus.transfer(self.slave_addr, msgs)
